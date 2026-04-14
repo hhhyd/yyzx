@@ -26,7 +26,7 @@
         护理老人
       </el-button>
     </div>
-
+<!-- 数据表格 -->
     <!-- 数据表格 -->
     <el-table :data="tableData" border stripe style="width: 100%">
       <el-table-column type="index" label="序号" width="60" />
