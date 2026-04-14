@@ -1,7 +1,7 @@
 <template>
     <el-row>
         <el-col :xs="{ span: 24, offset: 0 }" :sm="{ span: 12, offset: 6 }">
-            <el-form :model="formDate" ref="formData">
+            <el-form :model="formData" ref="formData">
                 <el-form-item label="">
                     <el-input placeholder="请输入用户名" v-model="formData.Username" clearable prefix-icon="User"></el-input>
                     
