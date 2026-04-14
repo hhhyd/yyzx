@@ -50,6 +50,11 @@ export default {
             userName:'admin1',
             password:'12345',
             usertype:'1'
+        },
+    {
+            userName:'admin',
+            password:'12345',
+            usertype:'2'
         }]
 
         }
@@ -59,20 +64,26 @@ export default {
            
              let flag=false
              for(let i=0;i<this.bindData.length;i++){
-                 if(this.bindData[i].userName==this.formData.Username&&this.bindData[i].password==this.formData.Password&&this.bindData[i].usertype==this.formData.usertype){
+                 if(this.bindData[i].userName==this.formData.Username&&
+                 this.bindData[i].password==this.formData.Password&&
+                 this.bindData[i].usertype==this.formData.usertype){
                      flag=true
                  }
              }
              if(flag){
                  ElMessage.success('登录成功')
-                   this.$router.push('/Breadcrumb')
+                   if(this.formData.usertype === '1'){
+                    this.$router.push('/Breadcrumb')
+                   }else if(this.formData.usertype === '2'){
+                    this.$router.push('/nurse')
+                   }
              }else{
                  ElMessage.error('用户名或密码错误')
              }
         }
     }
 }
-// 在登录成功的回调中
+
 
 </script>
 

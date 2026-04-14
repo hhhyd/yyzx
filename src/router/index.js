@@ -10,6 +10,34 @@ const routes =[
       component:login,
     },
     {
+      path:'/nurse',
+      name:'nurse',
+      component: () => import('../components/nurse.vue'),
+      redirect: '/Breadcrumb/checkin',
+       children:[
+         {
+           path: 'daily',
+           name: 'Daily',
+           component: () => import('../views/daily.vue'),
+         },
+          {
+        path: 'record',
+        name: 'Record',
+        component: () => import('../views/record.vue'),
+      },
+      {
+        path: 'inApply',
+        name: 'inApply',
+        component: () => import('../views/inApply.vue'),
+      },
+       {
+        path: 'outApply',
+        name: 'outApply',
+        component: () => import('../views/outApply.vue'),
+      },
+    ]
+    },
+    {
        path: '/Breadcrumb',
        name: 'Breadcrumb',
        component: () => import('../components/Breadcrumb.vue'),
