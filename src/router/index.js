@@ -10,8 +10,16 @@ const routes =[
     },
     {
        path: '/Breadcrumb',
-      name: 'Breadcrumb',
-      component:Breadcrumb,
+       name: 'Breadcrumb',
+       component: () => import('../components/Breadcrumb.vue'),
+       children:[
+         {
+           path: 'checkin',
+           name: 'checkin',
+           component: () => import('../views/checkin.vue'),
+         }
+
+       ] 
     }
 ]
 const router = createRouter({
