@@ -232,7 +232,7 @@ const pagination = reactive({
   total: 0
 })
 
-// 加载本地数据
+
 const loadFromLocal = () => {
   const list = localStorage.getItem(STORAGE_KEY_BED_LIST)
   if (list) {
@@ -248,7 +248,6 @@ const loadFromLocal = () => {
   pagination.total = bedUsageList.value.length
 }
 
-// 保存到本地
 const saveToLocal = () => {
   localStorage.setItem(STORAGE_KEY_BED_LIST, JSON.stringify(bedUsageList.value))
   syncBedMapAll()
@@ -258,7 +257,6 @@ onMounted(() => {
   loadFromLocal()
 })
 
-// 筛选列表
 const filteredList = computed(() => {
   return bedUsageList.value.filter(item => {
     const nameMatch = searchForm.customerName ? item.customerName.includes(searchForm.customerName) : true
@@ -268,14 +266,14 @@ const filteredList = computed(() => {
   })
 })
 
-// 分页数据
+
 const tableData = computed(() => {
   const start = (pagination.currentPage - 1) * pagination.pageSize
   const end = start + pagination.pageSize
   return filteredList.value.slice(start, end)
 })
 
-// 查询
+
 const handleSearch = () => {
   loading.value = true
   setTimeout(() => {
@@ -286,7 +284,7 @@ const handleSearch = () => {
   }, 300)
 }
 
-// 重置
+
 const handleReset = () => {
   searchForm.customerName = ''
   searchForm.checkinDate = ''
@@ -294,7 +292,7 @@ const handleReset = () => {
   handleSearch()
 }
 
-// 分页切换
+
 const handleSizeChange = (val) => {
   pagination.pageSize = val
   handleSearch()
@@ -304,7 +302,7 @@ const handleCurrentChange = (val) => {
   pagination.currentPage = val
 }
 
-// 修改结束时间
+
 const editDialogVisible = ref(false)
 const editForm = reactive({
   id: null, customerName: '', buildingNo: '', roomNo: '', bedNo: '', checkoutDate: ''
@@ -315,12 +313,12 @@ const handleEditEndDate = (row) => {
   editDialogVisible.value = true
 }
 
-// 禁用过去日期
+
 const disabledDate = (time) => {
   return time.getTime() < Date.now() - 86400000
 }
 
-// 确认修改结束时间
+
 const confirmEditEndDate = () => {
   if (!editForm.checkoutDate) {
     ElMessage.warning('请选择结束时间')
@@ -337,7 +335,7 @@ const confirmEditEndDate = () => {
   }
 }
 
-// 床位调换
+
 const transferDialogVisible = ref(false)
 const transferForm = reactive({
   customerId: null, customerName: '', currentBuildingNo: '', currentRoomNo: '', currentBedNo: '',
@@ -359,7 +357,7 @@ const handleTransferBed = (row) => {
     targetBedNo: ''
   })
 
-  // 过滤掉当前房间
+
   availableRooms.value = [
     { roomNo: '101' }, { roomNo: '102' }, { roomNo: '103' },
     { roomNo: '104' }, { roomNo: '105' }, { roomNo: '201' },
@@ -374,7 +372,6 @@ const handleRoomChange = (roomNo) => {
   availableBeds.value = [{ bedNo: '1' }, { bedNo: '2' }]
 }
 
-// 确认床位调换
 const confirmTransferBed = () => {
   if (!transferForm.targetRoomNo || !transferForm.targetBedNo) {
     ElMessage.warning('请完成目标床位选择')
