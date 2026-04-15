@@ -3,11 +3,11 @@
         <el-col :xs="{ span: 24, offset: 0 }" :sm="{ span: 12, offset: 6 }">
             <el-form :model="formData" ref="formData">
                 <el-form-item label="">
-                    <el-input placeholder="请输入用户名" v-model="formData.Username" clearable prefix-icon="User"></el-input>
+                    <el-input placeholder="请输入用户名" v-model="formData.UserName" clearable prefix-icon="User"></el-input>
                     
                 </el-form-item>
                 <el-form-item label="">
-                    <el-input placeholder="请输入密码" v-model="formData.Password" show-password prefix-icon="Lock"></el-input>
+                    <el-input placeholder="请输入密码" v-model="formData.password" show-password prefix-icon="Lock"></el-input>
                 </el-form-item>
                 <el-form-item label="">
                     <el-select v-model="formData.usertype" placeholder="请选择用户类型">
@@ -32,8 +32,8 @@ export default {
     data() {
         return {
             formData: {
-                Username: '',
-                Password: '',
+                UserName: '',
+                password: '',
                 usertype: ''
             },
             userTypeOptions:[
@@ -42,17 +42,17 @@ export default {
             ],
             checkNoPass:true,
             bindData:[{
-                userName:'admin',
+                UserName:'admin',
                 password:'12345',
                 usertype:'1'
             },
         {
-            userName:'admin1',
+            UserName:'admin1',
             password:'12345',
             usertype:'1'
         },
     {
-            userName:'admin',
+            UserName:'admin',
             password:'12345',
             usertype:'2'
         }]
@@ -64,8 +64,8 @@ export default {
            
              let flag=false
              for(let i=0;i<this.bindData.length;i++){
-                 if(this.bindData[i].userName==this.formData.Username&&
-                 this.bindData[i].password==this.formData.Password&&
+                 if(this.bindData[i].UserName==this.formData.UserName&&
+                 this.bindData[i].password==this.formData.password&&
                  this.bindData[i].usertype==this.formData.usertype){
                      flag=true
                  }
@@ -75,7 +75,7 @@ export default {
                    if(this.formData.usertype === '1'){
                     this.$router.push('/Breadcrumb')
                    }else if(this.formData.usertype === '2'){
-                    this.$router.push('/nurse')
+                    this.$router.push('/nurse/daily')
                    }
              }else{
                  ElMessage.error('用户名或密码错误')

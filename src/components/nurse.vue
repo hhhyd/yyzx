@@ -16,31 +16,14 @@
         @select="handleSelect"
       >
         <el-sub-menu index="1">
-          <template #title>客户管理</template>
-          <el-menu-item index="1-1">入住登记</el-menu-item>
-          <el-menu-item index="1-2">外出登记</el-menu-item>
-          <el-menu-item index="1-3">退住登记</el-menu-item>
+          <template #title>健康管家</template>
+          <el-menu-item index="1-1">日常护理</el-menu-item>
+          <el-menu-item index="1-2">服务对象护理记录</el-menu-item>
         </el-sub-menu>
         <el-sub-menu index="2">
-          <template #title>床位管理</template>
-          <el-menu-item index="2-1">床位示意图</el-menu-item>
-          <el-menu-item index="2-2">床位管理</el-menu-item>
-        </el-sub-menu>
-        <el-sub-menu index="3">
-          <template #title>护理管理</template>
-          <el-menu-item index="3-1">护理级别</el-menu-item>
-          <el-menu-item index="3-2">护理项目</el-menu-item>
-          <el-menu-item index="3-3">客户护理设置</el-menu-item>
-          <el-menu-item index="3-4">护理记录</el-menu-item>
-        </el-sub-menu>
-        <el-sub-menu index="4">
-          <template #title>健康管家</template>
-          <el-menu-item index="4-1">设置服务对象</el-menu-item>
-          <el-menu-item index="4-2">服务关注</el-menu-item>
-        </el-sub-menu>
-        <el-sub-menu index="5">
-          <template #title>用户管理</template>
-          <el-menu-item index="5-1">基础数据维护</el-menu-item>
+          <template #title>客户管理</template>
+          <el-menu-item index="2-1">外出申请</el-menu-item>
+          <el-menu-item index="2-2">退住申请</el-menu-item>
         </el-sub-menu>
       </el-menu>
     </div>
@@ -74,18 +57,10 @@ export default {
   computed: {
     pageTitle() {
       const map = {
-        '/Breadcrumb/checkin': '入住登记',
-        '/Breadcrumb/out-register': '外出登记',
-        '/Breadcrumb/checkout': '退住登记',
-        '/Breadcrumb/bed-map': '床位示意图',
-        '/Breadcrumb/bed-management': '床位管理',
-        '/Breadcrumb/nursing-level': '护理级别',
-        '/Breadcrumb/nursing-project': '护理项目',
-        '/Breadcrumb/customer-nursing': '客户护理设置',
-        '/Breadcrumb/nursing-record': '护理记录',
-        '/Breadcrumb/service-object': '设置服务对象',
-        '/Breadcrumb/service-concern': '服务关注',
-        '/Breadcrumb/user-list': '基础数据维护'
+       '/nurse/daily': '日常护理',
+        '/nurse/record': '服务对象护理记录',
+        '/nurse/inApply': '外出申请',
+        '/nurse/outApply': '退住申请'
       }
       return map[this.$route.path] || '页面'
     }
@@ -93,18 +68,10 @@ export default {
   methods: {
     handleSelect(key, keyPath) {
       const routeMap = {
-        '1-1': '/Breadcrumb/checkin',
-        '1-2': '/Breadcrumb/out-register',
-        '1-3': '/Breadcrumb/checkout',
-        '2-1': '/Breadcrumb/bed-map',
-        '2-2': '/Breadcrumb/bed-management',
-        '3-1': '/Breadcrumb/nursing-level',
-        '3-2': '/Breadcrumb/nursing-project',
-        '3-3': '/Breadcrumb/customer-nursing',
-        '3-4': '/Breadcrumb/nursing-record',
-        '4-1': '/Breadcrumb/service-object',
-        '4-2': '/Breadcrumb/service-concern',
-        '5-1': '/Breadcrumb/user-list'
+        '1-1': '/nurse/daily',
+        '1-2': '/nurse/record',
+        '2-1': '/nurse/inApply',
+        '2-2': '/nurse/outApply'
       }
       const path = routeMap[key]
       if (path) {

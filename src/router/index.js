@@ -13,7 +13,7 @@ const routes =[
       path:'/nurse',
       name:'nurse',
       component: () => import('../components/nurse.vue'),
-      redirect: '/Breadcrumb/checkin',
+      redirect: '/Breadcrumb/daily',
        children:[
          {
            path: 'daily',
