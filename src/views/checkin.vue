@@ -2,16 +2,13 @@
   <div style="background: white; padding: 20px; border-radius: 8px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
       <h2 style="margin: 0;">入住登记</h2>
-      <el-button type="info" @click="goToNursingPage">
-        <el-icon><UserFilled /></el-icon>
-        护理老人管理
-      </el-button>
     </div>
 
-    <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-      <el-input v-model="searchName" placeholder="客户姓名" style="width: 200px;" />
+    <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+      <el-input v-model="searchName" placeholder="客户姓名" style="width: 200px;" clearable />
       <el-button type="primary" @click="handleSearch">查询</el-button>
       <el-button type="success" @click="openModal('add')">登记</el-button>
+      <el-button type="warning" @click="handleReset">重置</el-button>
     </div>
 
     <div style="margin-bottom: 20px;">
@@ -151,21 +148,38 @@ export default {
       activeTab: 'self-care',
       currentPage: 1,
       pageSize: 10,
-      allData: [  
-        { id: 1, name: '张三', gender: '男', bloodType: 'A', phone: '13800138000', family: '张一', idCard: '1234567890', building: '606', room: 'A区101', bed: '1床', birthDate: '1950-01-01', checkInTime: '2024-01-01 10:00:00', nursingLevel: '一级', nurse: '王五', status: '良好' },
-        { id: 2, name: '李四', gender: '女', bloodType: 'B', phone: '13800138001', family: '李李', idCard: '1234567891', building: '606', room: 'A区102', bed: '1床', birthDate: '1960-02-02', checkInTime: '2024-01-02 11:00:00', nursingLevel: '二级', nurse: '赵六', status: '一般' },
-        { id: 3, name: '王小明', gender: '男', bloodType: 'O', phone: '13800138002', family: '王大明', idCard: '1234567892', building: '606', room: 'A区101', bed: '2床', birthDate: '1955-03-03', checkInTime: '2024-01-03 09:00:00', nursingLevel: '一级', nurse: '钱七', status: '良好' },
-        { id: 4, name: '霍一', gender: '女', bloodType: 'B', phone: '13800138003', family: '一', idCard: '1234567893', building: '606', room: 'A区102', bed: '2床', birthDate: '1960-02-02', checkInTime: '2024-01-02 11:00:00', nursingLevel: '二级', nurse: '赵一', status: '一般' },
-        { id: 5, name: '关二', gender: '男', bloodType: 'B', phone: '13800138004', family: '二', idCard: '1234567894', building: '606', room: 'A区103', bed: '2床', birthDate: '1960-02-02', checkInTime: '2024-01-02 11:00:00', nursingLevel: '二级', nurse: '赵二', status: '一般' },
-        { id: 6, name: '杜五', gender: '女', bloodType: 'AB', phone: '13800138005', family: '三', idCard: '1234567851', building: '606', room: 'A区104', bed: '2床', birthDate: '1960-02-02', checkInTime: '2024-01-02 11:00:00', nursingLevel: '二级', nurse: '赵七', status: '一般' },
-        { id: 7, name: '于九', gender: '女', bloodType: 'B', phone: '13800138006', family: '四', idCard: '1234567896', building: '606', room: 'A区105', bed: '2床', birthDate: '1960-02-02', checkInTime: '2024-01-02 11:00:00', nursingLevel: '二级', nurse: '赵三', status: '良好' }, 
-        { id: 8, name: '一二', gender: '男', bloodType: 'O', phone: '13800138007', family: '五', idCard: '1234567897', building: '606', room: 'A区106', bed: '2床', birthDate: '1960-02-02', checkInTime: '2024-01-02 11:00:00', nursingLevel: '二级', nurse: '赵五', status: '一般' },
-        { id: 9, name: '三四', gender: '女', bloodType: 'B', phone: '13800138008', family: '六', idCard: '1234567898', building: '606', room: 'A区201', bed: '2床', birthDate: '1960-02-02', checkInTime: '2024-01-02 11:00:00', nursingLevel: '二级', nurse: '赵八', status: '一般' },
-        { id: 10, name: '小七', gender: '女', bloodType: 'A', phone: '13800138009', family: '七', idCard: '1234567881', building: '606', room: 'B区102', bed: '2床', birthDate: '1960-02-02', checkInTime: '2024-01-02 11:00:00', nursingLevel: '二级', nurse: '赵九', status: '良好' },
-        { id: 11, name: '吴吴', gender: '男', bloodType: 'B', phone: '13800138010', family: '八', idCard: '1234567871', building: '606', room: 'B区102', bed: '1床', birthDate: '1960-02-02', checkInTime: '2024-01-02 11:00:00', nursingLevel: '二级', nurse: '赵十', status: '一般' },
-        { id: 12, name: '林六', gender: '女', bloodType: 'AB', phone: '13800138030', family: '九', idCard: '1234567691', building: '606', room: 'A区202', bed: '1床', birthDate: '1960-02-02', checkInTime: '2024-01-02 11:00:00', nursingLevel: '二级', nurse: '赵一六', status: '一般' },
-        { id: 13, name: '方七', gender: '女', bloodType: 'B', phone: '13800138040', family: '十', idCard: '1234567871', building: '606', room: 'A区202', bed: '2床', birthDate: '1960-02-02', checkInTime: '2024-01-02 11:00:00', nursingLevel: '二级', nurse: '赵五六', status: '一般' }
+      originalSearchName: '',
+      selfCareData: [
+        { id: 1, name: '陈国栋', gender: '男', bloodType: 'A', phone: '13912340001', family: '陈小明', idCard: '110101195001011234', building: '1号楼', room: 'A区101', bed: '1床', birthDate: '1950-01-01', checkInTime: '2024-01-01 09:00:00', nursingLevel: '一级', nurse: '李护士', status: '良好' },
+        { id: 2, name: '王淑芬', gender: '女', bloodType: 'B', phone: '13912340002', family: '王大力', idCard: '110101195102022345', building: '1号楼', room: 'A区102', bed: '2床', birthDate: '1951-02-02', checkInTime: '2024-01-05 10:30:00', nursingLevel: '一级', nurse: '张护士', status: '良好' },
+        { id: 3, name: '刘志远', gender: '男', bloodType: 'O', phone: '13912340003', family: '刘小军', idCard: '110101195203033456', building: '2号楼', room: 'B区101', bed: '1床', birthDate: '1952-03-03', checkInTime: '2024-01-10 14:00:00', nursingLevel: '一级', nurse: '王护士', status: '良好' },
+        { id: 4, name: '赵玉兰', gender: '女', bloodType: 'AB', phone: '13912340004', family: '赵国强', idCard: '110101195304044567', building: '2号楼', room: 'B区102', bed: '2床', birthDate: '1953-04-04', checkInTime: '2024-01-15 11:15:00', nursingLevel: '一级', nurse: '李护士', status: '良好' },
+        { id: 5, name: '周德明', gender: '男', bloodType: 'A', phone: '13912340005', family: '周建华', idCard: '110101195405055678', building: '1号楼', room: 'A区103', bed: '1床', birthDate: '1954-05-05', checkInTime: '2024-01-20 09:45:00', nursingLevel: '一级', nurse: '张护士', status: '良好' },
+        { id: 6, name: '吴桂英', gender: '女', bloodType: 'B', phone: '13912340006', family: '吴志强', idCard: '110101195506066789', building: '3号楼', room: 'C区101', bed: '2床', birthDate: '1955-06-06', checkInTime: '2024-01-25 13:20:00', nursingLevel: '一级', nurse: '王护士', status: '良好' },
+        { id: 7, name: '郑文博', gender: '男', bloodType: 'O', phone: '13912340007', family: '郑晓东', idCard: '110101195607077890', building: '1号楼', room: 'A区104', bed: '1床', birthDate: '1956-07-07', checkInTime: '2024-02-01 10:00:00', nursingLevel: '一级', nurse: '李护士', status: '良好' },
+        { id: 8, name: '孙丽华', gender: '女', bloodType: 'AB', phone: '13912340008', family: '孙建国', idCard: '110101195708088901', building: '2号楼', room: 'B区103', bed: '2床', birthDate: '1957-08-08', checkInTime: '2024-02-05 14:30:00', nursingLevel: '一级', nurse: '张护士', status: '良好' },
+        { id: 9, name: '钱学森', gender: '男', bloodType: 'A', phone: '13912340009', family: '钱小兵', idCard: '110101195809099012', building: '3号楼', room: 'C区102', bed: '1床', birthDate: '1958-09-09', checkInTime: '2024-02-10 09:15:00', nursingLevel: '一级', nurse: '王护士', status: '良好' },
+        { id: 10, name: '宋美云', gender: '女', bloodType: 'B', phone: '13912340010', family: '宋大伟', idCard: '110101195910101123', building: '1号楼', room: 'A区105', bed: '2床', birthDate: '1959-10-10', checkInTime: '2024-02-15 11:00:00', nursingLevel: '一级', nurse: '李护士', status: '良好' },
+        { id: 11, name: '林凤英', gender: '女', bloodType: 'O', phone: '13912340011', family: '林志远', idCard: '110101196011112234', building: '2号楼', room: 'B区104', bed: '1床', birthDate: '1960-11-11', checkInTime: '2024-02-20 13:45:00', nursingLevel: '一级', nurse: '张护士', status: '良好' },
+        { id: 12, name: '郭建华', gender: '男', bloodType: 'AB', phone: '13912340012', family: '郭小明', idCard: '110101196112123345', building: '3号楼', room: 'C区103', bed: '2床', birthDate: '1961-12-12', checkInTime: '2024-02-25 10:30:00', nursingLevel: '一级', nurse: '王护士', status: '良好' },
+        { id: 13, name: '唐秀珍', gender: '女', bloodType: 'A', phone: '13912340013', family: '唐国强', idCard: '110101196301013456', building: '1号楼', room: 'A区106', bed: '1床', birthDate: '1963-01-01', checkInTime: '2024-03-01 09:00:00', nursingLevel: '一级', nurse: '李护士', status: '良好' }
       ],
+      nursingData: [
+       { id: 101, name: '张三', gender: '男', bloodType: 'A', phone: '13800138000', family: '张一', idCard: '1234567890', building: '606', room: 'A区101', bed: '1床', birthDate: '1950-01-01', checkInTime: '2024-01-01 10:00:00', nursingLevel: '一级', nurse: '王五', status: '良好' },
+        { id: 102, name: '李四', gender: '女', bloodType: 'B', phone: '13800138001', family: '李李', idCard: '1234567891', building: '606', room: 'A区102', bed: '1床', birthDate: '1960-02-02', checkInTime: '2024-01-02 11:00:00', nursingLevel: '二级', nurse: '赵六', status: '一般' },
+        { id: 103, name: '王小明', gender: '男', bloodType: 'O', phone: '13800138002', family: '王大明', idCard: '1234567892', building: '606', room: 'A区101', bed: '2床', birthDate: '1955-03-03', checkInTime: '2024-01-03 09:00:00', nursingLevel: '一级', nurse: '钱七', status: '良好' },
+        { id: 104, name: '霍一', gender: '女', bloodType: 'B', phone: '13800138003', family: '一', idCard: '1234567893', building: '606', room: 'A区102', bed: '2床', birthDate: '1960-02-02', checkInTime: '2024-01-02 11:00:00', nursingLevel: '二级', nurse: '赵一', status: '一般' },
+        { id: 105, name: '关二', gender: '男', bloodType: 'B', phone: '13800138004', family: '二', idCard: '1234567894', building: '606', room: 'A区103', bed: '2床', birthDate: '1960-02-02', checkInTime: '2024-01-02 11:00:00', nursingLevel: '二级', nurse: '赵二', status: '一般' },
+        { id: 106, name: '杜五', gender: '女', bloodType: 'AB', phone: '13800138005', family: '三', idCard: '1234567851', building: '606', room: 'A区104', bed: '2床', birthDate: '1960-02-02', checkInTime: '2024-01-02 11:00:00', nursingLevel: '二级', nurse: '赵七', status: '一般' },
+        { id: 107, name: '于九', gender: '女', bloodType: 'B', phone: '13800138006', family: '四', idCard: '1234567896', building: '606', room: 'A区105', bed: '2床', birthDate: '1960-02-02', checkInTime: '2024-01-02 11:00:00', nursingLevel: '二级', nurse: '赵三', status: '良好' }, 
+        { id: 108, name: '一二', gender: '男', bloodType: 'O', phone: '13800138007', family: '五', idCard: '1234567897', building: '606', room: 'A区106', bed: '2床', birthDate: '1960-02-02', checkInTime: '2024-01-02 11:00:00', nursingLevel: '二级', nurse: '赵五', status: '一般' },
+        { id: 109, name: '三四', gender: '女', bloodType: 'B', phone: '13800138008', family: '六', idCard: '1234567898', building: '606', room: 'A区201', bed: '2床', birthDate: '1960-02-02', checkInTime: '2024-01-02 11:00:00', nursingLevel: '二级', nurse: '赵八', status: '一般' },
+        { id: 110, name: '小七', gender: '女', bloodType: 'A', phone: '13800138009', family: '七', idCard: '1234567881', building: '606', room: 'B区102', bed: '2床', birthDate: '1960-02-02', checkInTime: '2024-01-02 11:00:00', nursingLevel: '二级', nurse: '赵九', status: '良好' },
+        { id: 111, name: '吴吴', gender: '男', bloodType: 'B', phone: '13800138010', family: '八', idCard: '1234567871', building: '606', room: 'B区102', bed: '1床', birthDate: '1960-02-02', checkInTime: '2024-01-02 11:00:00', nursingLevel: '二级', nurse: '赵十', status: '一般' },
+        { id: 112, name: '林六', gender: '女', bloodType: 'AB', phone: '13800138030', family: '九', idCard: '1234567691', building: '606', room: 'A区202', bed: '1床', birthDate: '1960-02-02', checkInTime: '2024-01-02 11:00:00', nursingLevel: '二级', nurse: '赵一六', status: '一般' },
+        { id: 113, name: '方七', gender: '女', bloodType: 'B', phone: '13800138040', family: '十', idCard: '1234567871', building: '606', room: 'A区202', bed: '2床', birthDate: '1960-02-02', checkInTime: '2024-01-02 11:00:00', nursingLevel: '二级', nurse: '赵五六', status: '一般' }
+      ],
+      allData: [],
       filteredData: [],  
       dialogVisible: false,
       modalTitle: '',
@@ -214,55 +228,50 @@ export default {
     }
   },
   mounted() {
-    
+    this.allData = [...this.selfCareData, ...this.nursingData]
     this.filterData()
   },
   methods: {
-    // 跳转到护理老人页面
-    goToNursingPage() {
-     
-      if (this.$router) {
-        this.$router.push('/Breadcrumb/nursing-management')
-      
-      } else {
-        
-        this.activeTab = 'nursing'
-        ElMessage.info('切换到护理老人标签页')
-      }
+    handleReset() {
+      this.searchName = ''
+      this.filterData()
+      this.currentPage = 1
+      ElMessage.success('已重置搜索条件')
     },
-    
     
     filterData() {
       let result = [...this.allData]
 
       if (this.activeTab === 'self-care') {
-        result = result.filter(item => item.nursingLevel === '一级' || item.nursingLevel === '自理')
+        result = result.filter(item => item.nursingLevel === '一级')
       } else if (this.activeTab === 'nursing') {
         result = result.filter(item => item.nursingLevel === '二级' || item.nursingLevel === '三级')
       }
-
       
-      if (this.searchName) {
+      if (this.searchName && this.searchName.trim()) {
         result = result.filter(item => item.name.includes(this.searchName))
       }
       
       this.filteredData = result
       this.currentPage = 1 
     },
+    
     handleSearch() {
       this.filterData()
-      if (this.searchName) {
-        ElMessage.success(`找到 ${this.filteredTotal} 条记录`)
-      } else {
+      if (this.searchName && this.searchName.trim()) {
+        if (this.filteredTotal === 0) {
+          ElMessage.warning('未找到相关客户记录')
+        } else {
+          ElMessage.success(`找到 ${this.filteredTotal} 条记录`)
+        }
+      } else if (!this.searchName || !this.searchName.trim()) {
         ElMessage.warning('请输入客户姓名')
       }
     },
-
   
     handleTabChange() {
       this.filterData()
     },
-
    
     handlePageChange(page) {
       this.currentPage = page
@@ -313,7 +322,6 @@ export default {
       this.$refs.formRef.validate((valid) => {
         if (valid) {
           if (this.isEdit) {
-           
             const index = this.allData.findIndex(item => item.id === this.form.id)
             if (index !== -1) {
               this.allData.splice(index, 1, { ...this.form })
@@ -322,7 +330,6 @@ export default {
               ElMessage.error('未找到要修改的记录')
             }
           } else {
-            
             const newId = this.allData.length > 0
               ? Math.max(...this.allData.map(item => item.id)) + 1
               : 1
@@ -361,5 +368,11 @@ export default {
 <style scoped>
 .el-table {
   font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  div[style*="display: flex; align-items: center; gap: 10px;"] {
+    flex-wrap: wrap;
+  }
 }
 </style>
