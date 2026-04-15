@@ -33,7 +33,7 @@
       <!-- 顶部面包屑 -->
       <div style="padding: 15px 20px; background: #fff; border-bottom: 1px solid #e4e7ed;">
         <el-breadcrumb separator="/">
-          <el-breadcrumb-item :to="{ path: '/Breadcrumb/checkin' }">首页</el-breadcrumb-item>
+          <el-breadcrumb-item :to="{ path: '/nurse/daily' }">首页</el-breadcrumb-item>
           <el-breadcrumb-item>{{ pageTitle }}</el-breadcrumb-item>
         </el-breadcrumb>
       </div>
