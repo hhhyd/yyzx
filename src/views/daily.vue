@@ -15,8 +15,8 @@
       />
       <el-button type="primary" @click="handleSearch">查询</el-button>
       <el-button @click="handleReset">重置</el-button>
-      <!-- 新增的增加按钮 -->
-      <el-button type="success" @click="openAddDialog">增加</el-button>
+      <!-- 修改：增加按钮打开护理记录弹窗 -->
+      <el-button type="success" @click="openNursingRecordDialog">增加</el-button>
     </div>
 
     <!-- 表格区域 -->
@@ -31,17 +31,6 @@
         <el-table-column prop="floor" label="所属楼房" width="100" />
         <el-table-column prop="phone" label="联系电话" width="150" />
         <el-table-column prop="nursingLevel" label="护理级别" width="100" />
-        <el-table-column label="操作" width="120">
-          <template #default="{ row }">
-            <el-button 
-              size="small" 
-              type="primary"
-              @click="openDailyCareDialog(row)"
-            >
-              日常护理
-            </el-button>
-          </template>
-        </el-table-column>
       </el-table>
     </div>
 
@@ -58,110 +47,110 @@
       />
     </div>
 
-    <!-- 日常护理弹框 -->
+    <!-- 日常护理弹框 - 可以保留，但功能可以简化 -->
     <el-dialog
       title="客户护理信息"
       v-model="dialogVisible"
       width="600px"
       @close="closeDialog"
     >
-      <!-- 弹框内容 -->
-      <div v-if="selectedCustomer.name">
-        <!-- ... 弹框内容保持不变 ... -->
+      <div v-if="selectedCustomer.name" class="customer-info">
+        <el-descriptions title="客户基本信息" :column="2" border>
+          <el-descriptions-item label="客户姓名">{{ selectedCustomer.name }}</el-descriptions-item>
+          <el-descriptions-item label="年龄">{{ selectedCustomer.age }}</el-descriptions-item>
+          <el-descriptions-item label="性别">{{ selectedCustomer.gender }}</el-descriptions-item>
+          <el-descriptions-item label="房间号">{{ selectedCustomer.roomNo }}</el-descriptions-item>
+          <el-descriptions-item label="床号">{{ selectedCustomer.bedNo }}</el-descriptions-item>
+          <el-descriptions-item label="所属楼房">{{ selectedCustomer.floor }}</el-descriptions-item>
+          <el-descriptions-item label="联系电话">{{ selectedCustomer.phone }}</el-descriptions-item>
+          <el-descriptions-item label="护理级别">{{ selectedCustomer.nursingLevel }}</el-descriptions-item>
+        </el-descriptions>
       </div>
       
-      <!-- 弹框底部按钮 -->
       <span slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">关闭</el-button>
-        <el-button type="primary" @click="dialogVisible = false">确认</el-button>
       </span>
     </el-dialog>
 
-    <!-- 新增客户弹框 -->
+    <!-- 添加护理记录弹框 -->
     <el-dialog
-      title="新增客户信息"
+      title="添加护理记录"
       v-model="addDialogVisible"
       width="500px"
       @close="closeAddDialog"
     >
       <el-form 
-        :model="newCustomerForm" 
-        :rules="formRules" 
-        ref="addFormRef"
-        label-width="100px"
+        :model="newNursingRecord"
+        :rules="nursingRecordRules" 
+        ref="nursingRecordRef"
+        label-width="120px"
       >
-        <el-form-item label="客户姓名" prop="name">
-          <el-input 
-            v-model="newCustomerForm.name" 
+        <el-form-item label="客户姓名" prop="customerName">
+          <el-select
+            v-model="newNursingRecord.customerName"
+            filterable
+            remote
+            reserve-keyword
             placeholder="请输入客户姓名"
+            :remote-method="searchCustomerByName"
+            :loading="customerSearchLoading"
+            style="width: 100%;"
+          >
+            <el-option
+              v-for="item in customerOptions"
+              :key="item.name"
+              :label="item.name"
+              :value="item.name"
+            />
+          </el-select>
+        </el-form-item>
+        
+        <el-form-item label="护理项目编号" prop="nursingItemCode">
+          <el-input 
+            v-model="newNursingRecord.nursingItemCode" 
+            placeholder="请输入护理项目编号"
           />
         </el-form-item>
         
-        <el-form-item label="年龄" prop="age">
+        <el-form-item label="护理项目" prop="nursingItem">
+          <el-input 
+            v-model="newNursingRecord.nursingItem" 
+            placeholder="请输入护理项目"
+          />
+        </el-form-item>
+        
+        <el-form-item label="护理日期" prop="nursingDate">
+          <el-date-picker
+            v-model="newNursingRecord.nursingDate"
+            type="datetime"
+            placeholder="选择护理日期时间"
+            style="width: 100%;"
+          />
+        </el-form-item>
+        
+        <el-form-item label="护理数量" prop="nursingCount">
           <el-input-number
-            v-model="newCustomerForm.age"
-            :min="0"
-            :max="120"
-            placeholder="请输入年龄"
+            v-model="newNursingRecord.nursingCount"
+            :min="1"
+            :max="100"
+            placeholder="请输入护理数量"
             style="width: 100%;"
           />
         </el-form-item>
         
-        <el-form-item label="性别" prop="gender">
-          <el-select 
-            v-model="newCustomerForm.gender" 
-            placeholder="请选择性别"
-            style="width: 100%;"
-          >
-            <el-option label="男" value="男" />
-            <el-option label="女" value="女" />
-          </el-select>
-        </el-form-item>
-        
-        <el-form-item label="房间号" prop="roomNo">
+        <el-form-item label="护理内容" prop="nursingContent">
           <el-input 
-            v-model="newCustomerForm.roomNo" 
-            placeholder="请输入房间号"
+            v-model="newNursingRecord.nursingContent" 
+            type="textarea"
+            :rows="4"
+            placeholder="请输入护理内容"
           />
-        </el-form-item>
-        
-        <el-form-item label="床号" prop="bedNo">
-          <el-input 
-            v-model="newCustomerForm.bedNo" 
-            placeholder="请输入床号"
-          />
-        </el-form-item>
-        
-        <el-form-item label="所属楼房" prop="floor">
-          <el-input 
-            v-model="newCustomerForm.floor" 
-            placeholder="请输入所属楼房"
-          />
-        </el-form-item>
-        
-        <el-form-item label="联系电话" prop="phone">
-          <el-input 
-            v-model="newCustomerForm.phone" 
-            placeholder="请输入联系电话"
-          />
-        </el-form-item>
-        
-        <el-form-item label="护理级别" prop="nursingLevel">
-          <el-select 
-            v-model="newCustomerForm.nursingLevel" 
-            placeholder="请选择护理级别"
-            style="width: 100%;"
-          >
-            <el-option label="一级" value="一级" />
-            <el-option label="二级" value="二级" />
-            <el-option label="三级" value="三级" />
-          </el-select>
         </el-form-item>
       </el-form>
       
       <span slot="footer" class="dialog-footer">
         <el-button @click="addDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitNewCustomer">确认</el-button>
+        <el-button type="primary" @click="submitNursingRecord">确认</el-button>
       </span>
     </el-dialog>
   </div>
@@ -169,170 +158,154 @@
 
 <script>
 export default {
-  name: 'DailyCareStyle',
+  name: 'DailyCarePage',
   data() {
     return {
+      // 搜索相关
+      customerOptions: [], // 客户搜索结果
+      customerSearchLoading: false,
+      searchName: '',
+      currentPage: 1,
+      pageSize: 10,
+      
+      // 弹框控制
+      dialogVisible: false,  // 客户信息弹框
+      addDialogVisible: false,  // 护理记录弹框
+      
+      // 选中客户
+      selectedCustomer: {},
+      
+      // 添加护理记录表单
+      newNursingRecord: {
+        customerName: '',
+        nursingItemCode: '',
+        nursingItem: '',
+        nursingDate: new Date(),
+        nursingCount: 1,
+        nursingContent: ''
+      },
+      
+      // 护理记录验证规则
+      nursingRecordRules: {
+        customerName: [{ required: true, message: '客户姓名不能为空', trigger: 'blur' }],
+        nursingItemCode: [{ required: true, message: '护理项目编号不能为空', trigger: 'blur' }],
+        nursingItem: [{ required: true, message: '护理项目不能为空', trigger: 'blur' }],
+        nursingDate: [{ required: true, message: '护理日期不能为空', trigger: 'change' }],
+        nursingCount: [{ required: true, message: '护理数量不能为空', trigger: 'blur' }],
+        nursingContent: [{ required: true, message: '护理内容不能为空', trigger: 'blur' }]
+      },
+      
+      // 原始数据
       tableData: [
         { index: 1, name: '孙瑞英', age: 68, gender: '女', roomNo: '2012', bedNo: '2012-1', floor: '606', phone: '18167564213', nursingLevel: '二级' },
         { index: 2, name: '张帆', age: 77, gender: '女', roomNo: '1014', bedNo: '1014-1', floor: '606', phone: '17745189064', nursingLevel: '一级' },
         { index: 3, name: '王明', age: 72, gender: '男', roomNo: '2015', bedNo: '2015-2', floor: '606', phone: '13800138000', nursingLevel: '三级' },
         { index: 4, name: '李华', age: 65, gender: '女', roomNo: '3010', bedNo: '3010-1', floor: '606', phone: '13900139000', nursingLevel: '二级' },
-        { index: 5, name: '刘强', age: 80, gender: '男', roomNo: '1012', bedNo: '1012-3', floor: '606', phone: '13700137000', nursingLevel: '一级' }
-      ],
-      searchName: '',
-      currentPage: 1,
-      pageSize: 10,
-      dialogVisible: false,
-      selectedCustomer: {},
-      nursingItems: [
-        { name: '测量血压', frequency: '每日2次', time: '08:00, 20:00', status: '已完成' },
-        { name: '测量体温', frequency: '每日2次', time: '08:00, 20:00', status: '已完成' },
-        { name: '用药提醒', frequency: '每日3次', time: '08:00, 12:00, 20:00', status: '待完成' },
-        { name: '身体清洁', frequency: '每日1次', time: '09:00', status: '待完成' },
-        { name: '康复训练', frequency: '每日1次', time: '15:00', status: '待完成' },
-      ],
-      
-      // 新增弹框控制
-      addDialogVisible: false,
-      
-      // 新增客户表单数据
-      newCustomerForm: {
-        name: '',
-        age: null,
-        gender: '',
-        roomNo: '',
-        bedNo: '',
-        floor: '',
-        phone: '',
-        nursingLevel: ''
-      },
-      
-      // 表单验证规则
-      formRules: {
-        name: [
-          { required: true, message: '请输入客户姓名', trigger: 'blur' },
-          { min: 2, max: 10, message: '长度在 2 到 10 个字符', trigger: 'blur' }
-        ],
-        age: [
-          { required: true, message: '请输入年龄', trigger: 'blur' }
-        ],
-        gender: [
-          { required: true, message: '请选择性别', trigger: 'change' }
-        ],
-        roomNo: [
-          { required: true, message: '请输入房间号', trigger: 'blur' }
-        ],
-        phone: [
-          { required: true, message: '请输入联系电话', trigger: 'blur' },
-          { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号码', trigger: 'blur' }
-        ],
-        nursingLevel: [
-          { required: true, message: '请选择护理级别', trigger: 'change' }
-        ]
-      }
+        { index: 5, name: '刘强', age: 80, gender: '男', roomNo: '1012', bedNo: '1012-3', floor: '606', phone: '13700137000', nursingLevel: '一级' },
+        { index: 6, name: '陈芳', age: 70, gender: '女', roomNo: '2018', bedNo: '2018-1', floor: '606', phone: '13600136000', nursingLevel: '二级' },
+        { index: 7, name: '赵刚', age: 75, gender: '男', roomNo: '3012', bedNo: '3012-2', floor: '606', phone: '13500135000', nursingLevel: '三级' },
+        { index: 8, name: '周敏', age: 68, gender: '女', roomNo: '1016', bedNo: '1016-1', floor: '606', phone: '13400134000', nursingLevel: '一级' },
+        { index: 9, name: '吴伟', age: 73, gender: '男', roomNo: '2020', bedNo: '2020-3', floor: '606', phone: '13300133000', nursingLevel: '二级' },
+      ]
     }
   },
   computed: {
+    // 过滤后的数据（根据搜索条件）
     filteredData() {
-      if (!this.searchName.trim()) {
-        return this.tableData
+      if (!this.searchName) {
+        return this.tableData;
       }
       return this.tableData.filter(item => 
-        item.name.includes(this.searchName.trim())
-      )
+        item.name.toLowerCase().includes(this.searchName.toLowerCase())
+      );
     },
+    // 当前页显示的数据
     displayData() {
-      const start = (this.currentPage - 1) * this.pageSize
-      const end = start + this.pageSize
-      return this.filteredData.slice(start, end)
+      const start = (this.currentPage - 1) * this.pageSize;
+      const end = start + this.pageSize;
+      return this.filteredData.slice(start, end);
     }
   },
   methods: {
+    searchCustomerByName(query) {
+      if (query) {
+        this.customerSearchLoading = true;
+        // 模拟搜索：从 tableData 中过滤
+        setTimeout(() => {
+          this.customerOptions = this.tableData.filter(item =>
+            item.name.toLowerCase().includes(query.toLowerCase())
+          );
+          this.customerSearchLoading = false;
+        }, 200);
+      } else {
+        this.customerOptions = [];
+      }
+    },
+    
+    // 查询处理
     handleSearch() {
-      this.currentPage = 1
+      this.currentPage = 1; // 重置到第一页
     },
+    
+    // 重置处理
     handleReset() {
-      this.searchName = ''
-      this.currentPage = 1
-    },
-    handleSizeChange(val) {
-      this.pageSize = val
-    },
-    handleCurrentChange(val) {
-      this.currentPage = val
+      this.searchName = '';
+      this.currentPage = 1;
     },
     
-    // 日常护理弹框相关方法
+    // 打开日常护理弹框（查看客户信息）
     openDailyCareDialog(row) {
-      this.selectedCustomer = row
-      this.dialogVisible = true
-    },
-    closeDialog() {
-      this.dialogVisible = false
-      this.selectedCustomer = {}
-    },
-    getNursingLevelTag(level) {
-      switch(level) {
-        case '一级': return 'danger'
-        case '二级': return 'warning'
-        case '三级': return 'success'
-        default: return 'info'
-      }
+      this.selectedCustomer = { ...row };
+      this.dialogVisible = true;
     },
     
-    // 新增客户相关方法
-    openAddDialog() {
-      this.addDialogVisible = true
+    // 关闭日常护理弹框
+    closeDialog() {
+      this.dialogVisible = false;
+      this.selectedCustomer = {};
     },
+    
+    // 打开添加护理记录弹框
+    openNursingRecordDialog() {
+      this.addDialogVisible = true;
+    },
+    
+    // 关闭添加护理记录弹框
     closeAddDialog() {
-      this.$refs.addFormRef?.resetFields()
-      this.newCustomerForm = {
-        name: '',
-        age: null,
-        gender: '',
-        roomNo: '',
-        bedNo: '',
-        floor: '',
-        phone: '',
-        nursingLevel: ''
-      }
+      this.addDialogVisible = false;
+      this.$refs.nursingRecordRef?.resetFields(); // 重置表单
+      // 重置表单数据
+      this.newNursingRecord = {
+        customerName: '',
+        nursingItemCode: '',
+        nursingItem: '',
+        nursingDate: new Date(),
+        nursingCount: 1,
+        nursingContent: ''
+      };
     },
-    submitNewCustomer() {
-      this.$refs.addFormRef.validate((valid) => {
+    
+    // 提交护理记录
+    submitNursingRecord() {
+      this.$refs.nursingRecordRef.validate((valid) => {
         if (valid) {
-          // 生成新的序号
-          const maxIndex = this.tableData.length > 0 
-            ? Math.max(...this.tableData.map(item => item.index))
-            : 0
-          
-          // 创建新客户对象
-          const newCustomer = {
-            index: maxIndex + 1,
-            name: this.newCustomerForm.name,
-            age: this.newCustomerForm.age,
-            gender: this.newCustomerForm.gender,
-            roomNo: this.newCustomerForm.roomNo,
-            bedNo: this.newCustomerForm.bedNo,
-            floor: this.newCustomerForm.floor,
-            phone: this.newCustomerForm.phone,
-            nursingLevel: this.newCustomerForm.nursingLevel
-          }
-          
-          // 添加到表格数据（添加到最前面）
-          this.tableData.unshift(newCustomer)
-          
-          // 重置表单并关闭弹框
-          this.$message.success('客户信息添加成功！')
-          this.closeAddDialog()
-          this.addDialogVisible = false
-          
-          // 重置到第一页
-          this.currentPage = 1
-        } else {
-          this.$message.error('请填写完整信息！')
-          return false
+          // 这里可以添加提交逻辑
+          console.log('提交的护理记录:', this.newNursingRecord);
+          this.$message.success('护理记录添加成功');
+          this.closeAddDialog();
         }
-      })
+      });
+    },
+    
+    // 分页大小改变
+    handleSizeChange(val) {
+      this.pageSize = val;
+      this.currentPage = 1; // 重置到第一页
+    },
+    
+    // 当前页改变
+    handleCurrentChange(val) {
+      this.currentPage = val;
     }
   }
 }
@@ -340,28 +313,20 @@ export default {
 
 <style scoped>
 .daily-care-page {
-  background: #fff;
-  padding: 20px;
+  background-color: #fff;
   border-radius: 8px;
-  max-width: 1200px;
-  margin: 40px auto;
+  padding: 20px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 }
 
 .page-header {
   margin-bottom: 20px;
 }
 
-.page-header h2 {
-  font-size: 24px;
-  font-weight: bold;
-  margin: 0;
-}
-
 .search-bar {
   display: flex;
   align-items: center;
   margin-bottom: 20px;
-  gap: 10px;
 }
 
 .table-wrapper {
@@ -369,6 +334,11 @@ export default {
 }
 
 .pagination-wrapper {
-  text-align: center;
+  text-align: right;
+  margin-top: 20px;
+}
+
+.customer-info {
+  margin-top: 10px;
 }
 </style>
