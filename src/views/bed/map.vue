@@ -1,36 +1,51 @@
 <template>
   <div class="bed-map-container">
     <div class="page-header">
-      <h2>床位示意图</h2>
+      <div class="left">
+        <h2>床位示意图</h2>
+        <p class="desc">实时查看床位占用与空闲状态</p>
+      </div>
       <el-select v-model="selectedFloor" @change="loadFloorData" placeholder="选择楼层" style="width: 160px">
         <el-option v-for="floor in floors" :key="floor.id" :label="floor.name" :value="floor.id" />
       </el-select>
     </div>
 
     <div class="statistics-bar">
-      <el-row :gutter="15">
+      <el-row :gutter="16">
         <el-col :span="6">
-          <div class="stat-item">
-            <div class="stat-number">{{ statistics.total }}</div>
-            <div class="stat-text">总床位数</div>
+          <div class="stat-card total">
+            <div class="icon">🛏️</div>
+            <div class="content">
+              <div class="number">{{ statistics.total }}</div>
+              <div class="label">总床位数</div>
+            </div>
           </div>
         </el-col>
         <el-col :span="6">
-          <div class="stat-item">
-            <div class="stat-number">{{ statistics.available }}</div>
-            <div class="stat-text">空闲床位</div>
+          <div class="stat-card free">
+            <div class="icon">✅</div>
+            <div class="content">
+              <div class="number">{{ statistics.available }}</div>
+              <div class="label">空闲床位</div>
+            </div>
           </div>
         </el-col>
         <el-col :span="6">
-          <div class="stat-item">
-            <div class="stat-number">{{ statistics.occupied }}</div>
-            <div class="stat-text">有人床位</div>
+          <div class="stat-card occupied">
+            <div class="icon">👤</div>
+            <div class="content">
+              <div class="number">{{ statistics.occupied }}</div>
+              <div class="label">有人床位</div>
+            </div>
           </div>
         </el-col>
         <el-col :span="6">
-          <div class="stat-item">
-            <div class="stat-number">{{ statistics.outside }}</div>
-            <div class="stat-text">外出床位</div>
+          <div class="stat-card outside">
+            <div class="icon">🚪</div>
+            <div class="content">
+              <div class="number">{{ statistics.outside }}</div>
+              <div class="label">外出床位</div>
+            </div>
           </div>
         </el-col>
       </el-row>
@@ -44,11 +59,12 @@
             :key="index" 
             class="room-box"
             @click="viewRoomDetails(room)"
-            :class="{ 'room-active': selectedRoom?.number === room.number }"
           >
             <div class="room-title">
-              <span>{{ room.number }}</span>
-              <span class="room-type-tag">{{ room.type }}</span>
+              <span class="no">{{ room.number }}</span>
+              <el-tag :type="room.status === 'occupied' ? 'success' : 'info'" size="small">
+                {{ room.type }}
+              </el-tag>
             </div>
             <div class="bed-list">
               <div 
@@ -57,9 +73,10 @@
                 class="bed-box"
                 :class="getBedStatusClass(bed.status)"
                 :title="getBedTooltip(bed)"
+                @click.stop="handleQuickAssign(room, bed)"
               >
-                <span class="bed-label">{{ bed.bedNo }}号</span>
-                <span class="bed-status-icon">{{ getBedIcon(bed.status) }}</span>
+                <span class="bed-label">{{ bed.bedNo }}号床</span>
+                <span class="bed-dot" />
               </div>
             </div>
           </div>
@@ -67,160 +84,219 @@
       </div>
 
       <div class="detail-panel" v-if="selectedRoom">
-        <div class="panel-title-bar">
+        <div class="panel-header">
           <h3>{{ selectedRoom.number }} 房间详情</h3>
-          <el-button link @click="selectedRoom = null">关闭</el-button>
+          <el-button text @click="selectedRoom = null">关闭</el-button>
         </div>
         
         <div class="panel-body">
-          <div class="info-list">
-            <div class="info-row">
-              <span class="info-label">房间类型：</span>
-              <span class="info-value">{{ selectedRoom.type }}</span>
+          <div class="info-grid">
+            <div class="info-item">
+              <label>房间类型</label>
+              <value>{{ selectedRoom.type }}</value>
             </div>
-            <div class="info-row">
-              <span class="info-label">床位总数：</span>
-              <span class="info-value">{{ selectedRoom.beds.length }}</span>
+            <div class="info-item">
+              <label>床位总数</label>
+              <value>{{ selectedRoom.beds.length }}</value>
             </div>
           </div>
 
-          <div class="bed-table-section">
-            <h4>床位列表</h4>
+          <div class="bed-table-box">
+            <h4>床位明细</h4>
             <el-table :data="selectedRoom.beds" size="small" border>
               <el-table-column prop="bedNo" label="床号" width="70" align="center" />
               <el-table-column prop="patientName" label="入住人" min-width="100">
+                <template #default="{ row }">{{ row.patientName || '-' }}</template>
+              </el-table-column>
+              <el-table-column prop="status" label="状态" width="90" align="center">
                 <template #default="{ row }">
-                  {{ row.patientName || '-' }}
+                  <el-tag :type="row.status === 'free' ? 'info' : row.status === 'occupied' ? 'success' : 'warning'">
+                    {{ getBedStatusText(row.status) }}
+                  </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="status" label="状态" width="80" align="center">
+              <el-table-column label="操作" width="80" align="center">
                 <template #default="{ row }">
-                  {{ getBedStatusText(row.status) }}
-                </template>
-              </el-table-column>
-              <el-table-column label="操作" width="160" align="center">
-                <template #default="{ row }">
-                  <el-button link type="primary" size="small" @click="handleTransferBed(row)">床位调换</el-button>
+                  <el-button 
+                    v-if="row.status === 'free'"
+                    type="primary" 
+                    size="small"
+                    @click="handleAssignBed(selectedRoom, row)"
+                  >
+                    入住
+                  </el-button>
                 </template>
               </el-table-column>
             </el-table>
           </div>
-          
-          <div class="panel-footer">
-            <el-button type="primary" @click="handleAssignBed">安排入住</el-button>
-          </div>
         </div>
       </div>
       
-      <div v-else class="empty-panel">
-        <el-empty description="点击左侧房间查看详情" :image-size="100" />
+      <div v-else class="empty-tip">
+        <el-empty description="点击房间或床位办理入住" :image-size="100" />
       </div>
     </div>
 
-    <el-dialog v-model="checkinDialogVisible" title="入住登记" width="500px" :close-on-click-modal="false">
-      <el-form :model="checkinForm" label-width="85px" :rules="checkinRules" ref="checkinFormRef">
+    <!-- 办理入住弹窗 -->
+    <el-dialog
+      v-model="assignDialogVisible"
+      title="办理入住"
+      width="520px"
+      :close-on-click-modal="false"
+      class="custom-dialog"
+    >
+      <el-form :model="assignForm" label-width="90px" :rules="assignRules" ref="assignFormRef">
         <el-form-item label="房间床位">
-          <el-input :value="`${selectedRoom?.number} ${checkinForm.bedNo}号`" disabled />
+          <el-input :value="`${assignForm.roomNo} ${assignForm.bedNo}号床`" disabled />
         </el-form-item>
         <el-form-item label="客户姓名" prop="customerName">
-          <el-input v-model="checkinForm.customerName" placeholder="请输入客户姓名" />
+          <el-input v-model="assignForm.customerName" placeholder="请输入客户姓名" />
         </el-form-item>
         <el-form-item label="入住日期" prop="checkinDate">
-          <el-date-picker v-model="checkinForm.checkinDate" type="date" style="width: 100%" value-format="YYYY-MM-DD" />
+          <el-date-picker
+            v-model="assignForm.checkinDate"
+            type="date"
+            placeholder="选择入住日期"
+            style="width: 100%"
+            value-format="YYYY-MM-DD"
+            :disabled-date="(time) => time.getTime() > Date.now()"
+          />
         </el-form-item>
-        <el-form-item label="结束日期">
-          <el-date-picker v-model="checkinForm.checkoutDate" type="date" style="width: 100%" value-format="YYYY-MM-DD" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="checkinDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="confirmCheckin">确认登记</el-button>
-      </template>
-    </el-dialog>
-
-    <el-dialog v-model="transferDialogVisible" title="床位调换" width="500px" :close-on-click-modal="false">
-      <el-form :model="transferForm" label-width="100px">
-        <el-form-item label="当前位置">
-          <el-input :value="`${transferForm.roomNo} ${transferForm.bedNo}号`" disabled />
-        </el-form-item>
-        <el-form-item label="客户姓名">
-          <el-input v-model="transferForm.patientName" disabled />
-        </el-form-item>
-        <el-form-item label="目标房间" required>
-          <el-select v-model="transferForm.targetRoomNo" @change="onTargetRoomChange" placeholder="选择房间" style="width:100%">
-            <el-option v-for="room in allRooms" :key="room.number" :label="room.number" :value="room.number" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="目标床位" required>
-          <el-select v-model="transferForm.targetBedNo" placeholder="选择床位" style="width:100%">
-            <el-option v-for="bed in targetRoomBeds" :key="bed.id" :label="`${bed.bedNo}号`" :value="bed.bedNo" />
-          </el-select>
+        <el-form-item label="楼栋号">
+          <el-input v-model="assignForm.buildingNo" placeholder="请输入楼栋号" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="transferDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="confirmTransferBed">确认调换</el-button>
+        <div class="dialog-footer">
+          <el-button @click="assignDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="confirmAssign">确定办理</el-button>
+        </div>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch, reactive } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
+const STORAGE_KEY_BED_LIST = 'bedUsageList'
+const STORAGE_KEY_ROOMS = 'bedMapData'
+
+// 状态定义
 const selectedFloor = ref('1')
 const selectedRoom = ref(null)
+const assignDialogVisible = ref(false)
+const assignFormRef = ref(null)
 
+// 楼层配置
 const floors = ref([
-  { id: '1', name: '1楼 - 自理区' },
-  { id: '2', name: '2楼 - 护理区' },
-  { id: '3', name: '3楼 - 特护区' }
+  { id: '1', name: '1楼' },
+  { id: '2', name: '2楼' },
+  { id: '3', name: '3楼' }
 ])
 
-const STORAGE_KEY_ROOMS = 'bedMapData'
-const STORAGE_KEY_BED_LIST = 'bedUsageList'
+// 入住表单
+const assignForm = reactive({
+  roomNo: '',
+  bedNo: '',
+  customerName: '',
+  checkinDate: new Date().toISOString().split('T')[0],
+  buildingNo: '606'
+})
 
-const floorDataCache = ref({})
-const bedUsageList = ref([])
+// 表单校验规则
+const assignRules = {
+  customerName: [{ required: true, message: '请输入客户姓名', trigger: 'blur' }],
+  checkinDate: [{ required: true, message: '请选择入住日期', trigger: 'change' }]
+}
 
-const generateRooms = (floorId) => {
+// 生成房间结构
+const generateBaseRooms = (floorId) => {
   const rooms = []
   const prefix = floorId + '0'
   for (let i = 1; i <= 10; i++) {
     const roomNo = `${prefix}${i}`
+    const isDouble = i % 3 === 0
+    const bedCount = isDouble ? 2 : 1
+    const beds = []
+    
+    for (let j = 1; j <= bedCount; j++) {
+      beds.push({
+        id: `${roomNo}-${j}`, 
+        bedNo: String(j), 
+        patientName: '', 
+        status: 'free'
+      })
+    }
+
     rooms.push({
       number: roomNo,
-      type: i % 3 === 0 ? '双人房' : '单人房',
-      beds: [
-        { id: `${roomNo}-1`, bedNo: '1', patientName: '', status: 'free' },
-        { id: `${roomNo}-2`, bedNo: '2', patientName: '', status: 'free' }
-      ]
+      type: isDouble ? '双人房' : '单人房',
+      status: 'free',
+      beds
     })
   }
   return rooms
 }
 
-onMounted(() => {
-  const savedRooms = localStorage.getItem(STORAGE_KEY_ROOMS)
-  const savedList = localStorage.getItem(STORAGE_KEY_BED_LIST)
-  if (savedRooms) floorDataCache.value = JSON.parse(savedRooms)
-  else {
-    floorDataCache.value['1'] = generateRooms('1')
-    floorDataCache.value['2'] = generateRooms('2')
-    floorDataCache.value['3'] = generateRooms('3')
-  }
-  if (savedList) bedUsageList.value = JSON.parse(savedList)
-})
-
-const saveToLocal = () => {
-  localStorage.setItem(STORAGE_KEY_ROOMS, JSON.stringify(floorDataCache.value))
-  localStorage.setItem(STORAGE_KEY_BED_LIST, JSON.stringify(bedUsageList.value))
+// 楼层数据缓存
+const floorDataCache = {
+  '1': generateBaseRooms('1'),
+  '2': generateBaseRooms('2'),
+  '3': generateBaseRooms('3')
 }
 
-const currentFloorRooms = computed(() => floorDataCache.value[selectedFloor.value] || [])
-const allRooms = computed(() => currentFloorRooms.value)
+// 🔴 核心：全量同步床位状态（双向同步）
+const syncFromLocal = () => {
+  const listStr = localStorage.getItem(STORAGE_KEY_BED_LIST)
+  if (!listStr) return
+  const activeRecords = JSON.parse(listStr).filter(r => r.status === 'active')
 
+  Object.keys(floorDataCache).forEach(fid => {
+    floorDataCache[fid].forEach(room => {
+      let hasOccupied = false
+      room.beds.forEach(bed => {
+        const hit = activeRecords.find(
+          r => r.roomNo === room.number && r.bedNo === bed.bedNo
+        )
+        if (hit) {
+          bed.status = 'occupied'
+          bed.patientName = hit.customerName
+          hasOccupied = true
+        } else {
+          bed.status = 'free'
+          bed.patientName = ''
+        }
+      })
+      room.status = hasOccupied ? 'occupied' : 'free'
+    })
+  })
+}
+
+// 页面加载同步
+onMounted(() => {
+  syncFromLocal()
+  // 初始化房间数据到localStorage（避免示意图与管理页数据不一致）
+  const map = localStorage.getItem(STORAGE_KEY_ROOMS)
+  if (!map) {
+    localStorage.setItem(STORAGE_KEY_ROOMS, JSON.stringify(floorDataCache))
+  }
+})
+
+// 监听楼层切换，同步数据
+watch(selectedFloor, () => {
+  syncFromLocal()
+  selectedRoom.value = null
+})
+
+// 实时获取当前楼层数据（每次都同步最新状态）
+const currentFloorRooms = computed(() => {
+  syncFromLocal()
+  return floorDataCache[selectedFloor.value] || []
+})
+
+// 实时统计
 const statistics = computed(() => {
   let total = 0, available = 0, occupied = 0, outside = 0
   currentFloorRooms.value.forEach(room => {
@@ -234,126 +310,210 @@ const statistics = computed(() => {
   return { total, available, occupied, outside }
 })
 
-const loadFloorData = () => selectedRoom.value = null
-const viewRoomDetails = (room) => selectedRoom.value = room
+// 加载楼层数据
+const loadFloorData = () => {
+  syncFromLocal()
+  selectedRoom.value = null
+}
 
-const getBedStatusClass = (s) => ({ free: 'bed-free', occupied: 'bed-occupied', outside: 'bed-outside' }[s] || 'bed-free')
-const getBedIcon = (s) => s === 'occupied' ? '●' : s === 'outside' ? '○' : ''
-const getBedTooltip = (bed) => bed.status === 'occupied' ? `入住人：${bed.patientName}` : bed.status === 'outside' ? `外出：${bed.patientName}` : '空闲'
+// 查看房间详情
+const viewRoomDetails = (room) => {
+  selectedRoom.value = room
+}
+
+// 快速办理入住（点击床位直接触发）
+const handleQuickAssign = (room, bed) => {
+  if (bed.status !== 'free') {
+    ElMessage.warning('该床位已被占用，无法办理入住')
+    return
+  }
+  assignForm.roomNo = room.number
+  assignForm.bedNo = bed.bedNo
+  assignDialogVisible.value = true
+}
+
+// 表格内办理入住
+const handleAssignBed = (room, bed) => {
+  handleQuickAssign(room, bed)
+}
+
+// 确认办理入住
+const confirmAssign = () => {
+  assignFormRef.value.validate((valid) => {
+    if (!valid) return
+
+    // 1. 校验床位是否空闲
+    const room = floorDataCache[selectedFloor.value].find(r => r.number === assignForm.roomNo)
+    const bed = room?.beds.find(b => b.bedNo === assignForm.bedNo)
+    if (!bed || bed.status !== 'free') {
+      ElMessage.error('床位状态已变更，请刷新后重试')
+      return
+    }
+
+    // 2. 生成新的入住记录
+    const listStr = localStorage.getItem(STORAGE_KEY_BED_LIST)
+    const bedUsageList = listStr ? JSON.parse(listStr) : []
+    const newId = bedUsageList.length ? Math.max(...bedUsageList.map(i => i.id)) + 1 : 1
+
+    const newRecord = {
+      id: newId,
+      customerName: assignForm.customerName,
+      buildingNo: assignForm.buildingNo,
+      roomNo: assignForm.roomNo,
+      bedNo: assignForm.bedNo,
+      checkinDate: assignForm.checkinDate,
+      checkoutDate: null,
+      status: 'active'
+    }
+
+    // 3. 同步到床位管理页数据
+    bedUsageList.push(newRecord)
+    localStorage.setItem(STORAGE_KEY_BED_LIST, JSON.stringify(bedUsageList))
+
+    // 4. 更新示意图本地状态
+    bed.status = 'occupied'
+    bed.patientName = assignForm.customerName
+    room.status = 'occupied'
+
+    // 5. 同步到示意图存储
+    localStorage.setItem(STORAGE_KEY_ROOMS, JSON.stringify(floorDataCache))
+
+    // 6. 关闭弹窗，重置表单
+    ElMessage.success('办理入住成功')
+    assignDialogVisible.value = false
+    assignForm.customerName = ''
+    assignForm.buildingNo = '606'
+    selectedRoom.value = null
+  })
+}
+
+// 状态工具函数
+const getBedStatusClass = (s) => `bed-${s}`
+const getBedTooltip = (b) => b.status === 'free' ? '空闲（点击办理入住）' : `${b.patientName}（${getBedStatusText(b.status)}）`
 const getBedStatusText = (s) => ({ free: '空闲', occupied: '有人', outside: '外出' }[s] || '未知')
-
-const checkinDialogVisible = ref(false)
-const checkinFormRef = ref(null)
-const checkinForm = ref({ bedNo: '', customerName: '', checkinDate: '', checkoutDate: '' })
-const checkinRules = {
-  customerName: [{ required: true, message: '请输入客户姓名', trigger: 'blur' }],
-  checkinDate: [{ required: true, message: '请选择入住日期', trigger: 'change' }]
-}
-
-const handleAssignBed = () => {
-  const b = selectedRoom.value.beds.find(x => x.status === 'free')
-  if (!b) return ElMessage.warning('暂无空闲床位')
-  checkinForm.value = { bedNo: b.bedNo, customerName: '', checkinDate: new Date().toISOString().split('T')[0], checkoutDate: '' }
-  checkinDialogVisible.value = true
-}
-
-const confirmCheckin = async () => {
-  await checkinFormRef.value.validate()
-  const { bedNo, customerName, checkinDate, checkoutDate } = checkinForm.value
-  const bed = selectedRoom.value.beds.find(x => x.bedNo === bedNo)
-  bed.patientName = customerName
-  bed.status = 'occupied'
-
-  const newId = bedUsageList.value.length ? Math.max(...bedUsageList.value.map(x => x.id)) + 1 : 1
-  bedUsageList.value.push({
-    id: newId, customerName, buildingNo: '606',
-    roomNo: selectedRoom.value.number, bedNo, checkinDate, checkoutDate: checkoutDate || null, status: 'active'
-  })
-  saveToLocal()
-  checkinDialogVisible.value = false
-  ElMessage.success('入住登记成功')
-}
-
-const transferDialogVisible = ref(false)
-const transferForm = ref({})
-const targetRoomBeds = ref([])
-
-const handleTransferBed = (row) => {
-  if (row.status !== 'occupied') return ElMessage.warning('仅有人床位可调换')
-  transferForm.value = { roomNo: selectedRoom.value.number, bedNo: row.bedNo, patientName: row.patientName, targetRoomNo: '', targetBedNo: '' }
-  transferDialogVisible.value = true
-}
-
-const onTargetRoomChange = (roomNo) => {
-  const room = currentFloorRooms.value.find(r => r.number === roomNo)
-  targetRoomBeds.value = room ? room.beds.filter(x => x.status === 'free') : []
-}
-
-const confirmTransferBed = () => {
-  const { roomNo, bedNo, patientName, targetRoomNo, targetBedNo } = transferForm.value
-  const sourceBed = selectedRoom.value.beds.find(x => x.bedNo === bedNo)
-  const targetRoom = currentFloorRooms.value.find(r => r.number === targetRoomNo)
-  const targetBed = targetRoom.beds.find(x => x.bedNo === targetBedNo)
-  
-  if (targetBed.status !== 'free') return ElMessage.warning('目标床位非空闲')
-  
-  ElMessageBox.confirm(`确认调换${patientName}至${targetRoomNo}${targetBedNo}号？`).then(() => {
-    const today = new Date().toISOString().split('T')[0]
-    const oldRecord = bedUsageList.value.find(x => x.customerName === patientName && x.status === 'active')
-    if (oldRecord) { oldRecord.status = 'history'; oldRecord.checkoutDate = today }
-
-    sourceBed.status = 'free'
-    sourceBed.patientName = ''
-    targetBed.status = 'occupied'
-    targetBed.patientName = patientName
-
-    const newId = bedUsageList.value.length ? Math.max(...bedUsageList.value.map(x => x.id)) + 1 : 1
-    bedUsageList.value.push({
-      id: newId, customerName: patientName, buildingNo: '606',
-      roomNo: targetRoomNo, bedNo: targetBedNo, checkinDate: today, checkoutDate: null, status: 'active'
-    })
-    saveToLocal()
-    transferDialogVisible.value = false
-    ElMessage.success('床位调换成功')
-  })
-}
 </script>
 
 <style scoped>
-.bed-map-container { padding: 20px; height: calc(100vh - 60px); display: flex; flex-direction: column; background: #f5f7fa; }
-.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #fff; padding: 16px 20px; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-.page-header h2 { margin: 0; font-size: 18px; font-weight: 500; color: #303133; }
-.statistics-bar { margin-bottom: 20px; }
-.stat-item { background: #fff; padding: 16px; border-radius: 6px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-.stat-number { font-size: 24px; font-weight: 600; color: #303133; margin-bottom: 4px; }
-.stat-text { font-size: 13px; color: #909399; }
-.content-wrapper { display: flex; flex: 1; gap: 16px; overflow: hidden; }
-.map-area { flex: 1; background: #fff; border-radius: 6px; padding: 20px; overflow-y: auto; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-.room-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(150px,1fr)); gap: 12px; }
-.room-box { border: 1px solid #e4e7ed; border-radius: 6px; padding: 12px; cursor: pointer; transition: all 0.2s; background: #fff; }
-.room-active { border-color: #409eff; background: #edf4ff; }
-.room-box:hover { border-color: #409eff; }
-.room-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #ebeef5; }
-.room-title span:first-child { font-weight: 500; font-size: 14px; color: #303133; }
-.room-type-tag { font-size: 11px; color: #909399; background: #f4f4f5; padding: 2px 6px; border-radius: 2px; }
-.bed-list { display: flex; flex-direction: column; gap: 6px; }
-.bed-box { padding: 6px 10px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
-.bed-free { background: #fafafa; border: 1px solid #dcdfe6; }
-.bed-occupied { background: #f0f9eb; border: 1px solid #67c23a; }
-.bed-outside { background: #fdf6ec; border: 1px solid #e6a23c; }
-.bed-label { color: #606266; }
-.bed-status-icon { font-size: 10px; }
-.bed-occupied .bed-status-icon { color: #67c23a; }
-.bed-outside .bed-status-icon { color: #e6a23c; }
-.detail-panel { width: 360px; background: #fff; border-radius: 6px; display: flex; flex-direction: column; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-.panel-title-bar { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid #ebeef5; }
-.panel-title-bar h3 { margin: 0; font-size: 15px; font-weight: 500; color: #303133; }
-.panel-body { flex: 1; padding: 16px; overflow-y: auto; }
-.info-list { margin-bottom: 16px; }
-.info-row { display: flex; padding: 8px 0; border-bottom: 1px solid #f0f2f5; }
-.info-label { width: 80px; color: #909399; font-size: 13px; }
-.info-value { flex: 1; color: #303133; font-size: 13px; }
-.bed-table-section h4 { margin: 16px 0 10px; font-size: 14px; font-weight: 500; color: #303133; }
-.panel-footer { margin-top: 16px; padding-top: 16px; border-top: 1px solid #f0f2f5; text-align: right; }
-.empty-panel { width: 360px; display: flex; align-items: center; justify-content: center; background: #fff; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+.bed-map-container {
+  padding: 24px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f5f7fa;
+  gap: 20px;
+}
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  padding: 20px 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+.left h2 { margin:0; font-size:20px; font-weight:600; color:#1f2937; }
+.desc { margin:4px 0 0; font-size:13px; color:#6b7280; }
+.statistics-bar { margin-bottom:4px; }
+.stat-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+.stat-card .icon { font-size:28px; }
+.content { display:flex; flex-direction:column; gap:2px; }
+.number { font-size:22px; font-weight:600; color:#1f2937; }
+.label { font-size:13px; color:#6b7280; }
+.content-wrapper { display:flex; gap:20px; flex:1; overflow:hidden; }
+.map-area {
+  flex:1;
+  background:#fff;
+  border-radius:12px;
+  padding:24px;
+  overflow-y:auto;
+  box-shadow:0 2px 10px rgba(0,0,0,0.05);
+}
+.room-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+.room-box {
+  border-radius: 10px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #fafbfc;
+  border: 1px solid #e5e7eb;
+}
+.room-box:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  transform: translateY(-2px);
+}
+.room-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.room-title .no { font-weight:600; font-size:14px; color:#1f2937; }
+.bed-list { display:flex; flex-direction:column; gap:8px; }
+.bed-box {
+  padding: 8px 10px;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size:12px;
+  background:#fff;
+  border:1px solid #e5e7eb;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.bed-box:hover {
+  border-color: #3b82f6;
+  background: #f0f7ff;
+}
+.bed-free { border-color:#d1d5db; }
+.bed-occupied { border-color:#10b981; background:#f0fdf4; cursor: not-allowed; }
+.bed-outside { border-color:#f59e0b; background:#fef3c7; cursor: not-allowed; }
+.bed-label { color:#374151; }
+.bed-dot { width:8px; height:8px; border-radius:50%; background:#d1d5db; }
+.bed-occupied .bed-dot { background:#10b981; }
+.bed-outside .bed-dot { background:#f59e0b; }
+.detail-panel {
+  width: 380px;
+  background: #fff;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+.panel-header {
+  padding: 18px 20px;
+  border-bottom:1px solid #f3f4f6;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.panel-header h3 { margin:0; font-size:16px; font-weight:600; color:#1f2937; }
+.panel-body { padding:20px; flex:1; overflow-y:auto; }
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.info-item { display:flex; flex-direction:column; gap:4px; }
+.info-item label { font-size:12px; color:#6b7280; }
+.info-item value { font-size:14px; font-weight:500; color:#1f2937; }
+.bed-table-box h4 { margin:0 0 10px; font-size:14px; font-weight:600; color:#1f2937; }
+.panel-footer { margin-top:20px; padding-top:16px; border-top:1px solid #f3f4f6; text-align:right; }
+.empty-tip {
+  width:380px; background:#fff; border-radius:12px;
+  display:grid; place-items:center; box-shadow:0 2px 10px rgba(0,0,0,0.05);
+}
+.dialog-footer { display: flex; justify-content: flex-end; gap: 12px; }
 </style>
