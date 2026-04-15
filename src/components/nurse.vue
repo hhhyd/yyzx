@@ -1,7 +1,7 @@
 <template>
   <div style="display: flex; height: 100vh;">
     <!-- 侧边栏 -->
-    <div style="width: 200px; background-color: #ADD8E6; color: white;">
+    <div style="width: 250px; background-color: #ADD8E6; color: white;">
       <div style="display: flex; align-items: center; padding: 20px 20px 20px 10px;">
         <img src="../assets/logo.png" alt="" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 5px; ">
       <div style="text-align: center; padding: 20px; font-size: 18px; font-weight: bold;">
