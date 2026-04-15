@@ -21,7 +21,7 @@
         clearable
       />
 
-      <el-button type="primary" @click="refreshList">查询</el-button>
+      <el-button type="primary" style="background:#409EFF;border-color:#409EFF" @click="refreshList">查询</el-button>
       <el-button type="success" @click="openAddDialog">新增护理项目</el-button>
     </div>
 
@@ -31,7 +31,7 @@
       border
       stripe
       style="width: 100%; margin-bottom: 20px;"
-      :header-cell-style="{ background:'#1890ff', color:'#fff', fontWeight:'bold' }"
+      :header-cell-style="{ background:'#add8e6', color:'#fff', fontWeight:'bold' }"
     >
       <el-table-column label="序号" align="center" width="80">
         <template #default="scope">{{ scope.$index + 1 }}</template>
@@ -67,7 +67,7 @@
           <el-button
             size="small"
             type="primary"
-            style="background:#1890ff; border:none; border-radius:4px; margin-right:5px;"
+            style="background:#409EFF; border-color:#409EFF; border-radius:4px; margin-right:5px;"
             @click="handleNursing(scope.row)"
           >
             护理
@@ -105,6 +105,9 @@
     <!-- 新增护理项目弹窗 -->
     <el-dialog v-model="addDialog" title="新增护理项目" width="650px" center>
       <el-form :model="addForm" label-width="130px">
+        <el-form-item label="护理人（客户姓名）" required>
+          <el-input v-model="addForm.customerName" placeholder="请输入护理人姓名" />
+        </el-form-item>
         <el-form-item label="项目编号" required>
           <el-input v-model="addForm.code" />
         </el-form-item>
@@ -139,6 +142,9 @@
     <!-- 修改护理项目弹窗 -->
     <el-dialog v-model="editDialog" title="修改护理项目" width="650px" center>
       <el-form :model="editForm" label-width="130px">
+        <el-form-item label="护理人（客户姓名）">
+          <el-input v-model="editForm.customerName" disabled />
+        </el-form-item>
         <el-form-item label="项目编号">
           <el-input v-model="editForm.code" disabled />
         </el-form-item>
@@ -237,6 +243,7 @@ export default {
 
       // 表单数据
       addForm: {
+        customerName: '',
         code: '',
         name: '',
         price: '',
@@ -305,6 +312,7 @@ export default {
     openAddDialog() {
       // 重置新增表单
       this.addForm = {
+        customerName: '',
         code: '',
         name: '',
         price: '',
@@ -317,8 +325,8 @@ export default {
     },
     saveAdd() {
       // 表单校验
-      if (!this.addForm.code || !this.addForm.name || !this.addForm.price) {
-        this.$message.warning('请填写项目编号、名称、价格等必填项！')
+      if (!this.addForm.customerName || !this.addForm.code || !this.addForm.name || !this.addForm.price) {
+        this.$message.warning('请填写护理人、项目编号、名称、价格等必填项！')
         return
       }
 
@@ -330,7 +338,7 @@ export default {
       // 新增项目
       this.projectList.push({
         id: newId,
-        customerName: '孙瑞英', // 可根据实际需求改为动态选择
+        customerName: this.addForm.customerName,
         code: this.addForm.code,
         name: this.addForm.name,
         price: this.addForm.price,
@@ -404,7 +412,7 @@ export default {
 
 <style scoped>
 .el-table th {
-  background-color: #1890ff !important;
+  background-color: #add8e6 !important;
   color: #fff !important;
 }
 .el-table {
