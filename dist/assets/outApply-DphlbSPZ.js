@@ -1,0 +1,1 @@
+import{I as e,d as t,m as n,t as r}from"./_plugin-vue_export-helper-D1RKUtCV.js";var i={name:`OutApply`},a={style:{background:`white`,padding:`20px`,"border-radius":`8px`}};function o(r,i,o,s,c,l){return e(),n(`div`,a,[...i[0]||=[t(`h2`,null,`退住申请`,-1),t(`p`,null,null,-1)]])}var s=r(i,[[`render`,o]]);export{s as default};

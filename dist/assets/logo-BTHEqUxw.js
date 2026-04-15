@@ -1,0 +1,1 @@
+var e=`/assets/logo-BbLk5E2a.png`;export{e as t};

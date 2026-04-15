@@ -1,0 +1,1 @@
+import{I as e,d as t,m as n,t as r}from"./_plugin-vue_export-helper-D1RKUtCV.js";var i={name:`NursingProject`};function a(r,i,a,o,s,c){return e(),n(`div`,null,[...i[0]||=[t(`h2`,null,`护理项目`,-1)]])}var o=r(i,[[`render`,a]]);export{o as default};
