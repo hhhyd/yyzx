@@ -21,6 +21,7 @@
       @row-click="selectCustomer"
       :highlight-current-row="true"
       style="width: 100%; margin-bottom: 20px;"
+      header-cell-class-name="custom-header"
     >
       <el-table-column label="ID" prop="id" align="center" width="70" />
       <el-table-column label="客户姓名" prop="name" align="center" />
@@ -53,7 +54,13 @@
         <h3>客户【{{ currentCustomer.name }}】的护理记录</h3>
         <el-button type="primary" @click="openAddRecordDialog">添加护理记录</el-button>
       </div>
-      <el-table :data="visibleRecords" border stripe style="width: 100%; margin-top: 10px;">
+      <el-table 
+        :data="visibleRecords" 
+        border 
+        stripe 
+        style="width: 100%; margin-top: 10px;"
+        header-cell-class-name="custom-header"
+      >
         <el-table-column label="项目编号" prop="projectCode" align="center" />
         <el-table-column label="项目名称" prop="projectName" align="center" />
         <el-table-column label="护理数量" prop="quantity" align="center" width="100" />
@@ -73,7 +80,7 @@
       </el-table>
     </div>
 
-    <div v-else style="color: #999; margin-top: 20px;">
+    <div v-else style="color: #add8e6; margin-top: 20px;">
       请先选择左侧客户查看护理记录
     </div>
 
@@ -131,7 +138,7 @@ export default {
       customerList: [
         { id: 1, name: '孙瑞英', gender: '女', age: 68, nursingLevel: '二级护理' },
         { id: 2, name: '张帆', gender: '男', age: 77, nursingLevel: '三级护理' },
-        { id: 3, name: '苗月兰', gender: '女', age: 67, nursingLevel: null },
+        { id: 3, name: '苗月兰', gender: '女', age: 67, nursingLevel: '二级护理' },
       ],
 
       // 护理记录（模拟数据，匹配图中孙瑞英的吸氧记录）
@@ -139,7 +146,7 @@ export default {
         { 
           id: 1,
           customerId: 1, 
-          projectCode: 'HLXM0001', 
+          projectCode: '1', 
           projectName: '吸氧', 
           quantity: 1, 
           nursingTime: '2023-11-24', 
@@ -147,8 +154,17 @@ export default {
         },
         { 
           id: 2,
-          customerId: 1, 
-          projectCode: 'HLXM0002', 
+          customerId: 2, 
+          projectCode: '2', 
+          projectName: '协助服药', 
+          quantity: 1, 
+          nursingTime: '2023-11-24', 
+          nursingContent: '' 
+        },
+        {
+            id: 2,
+          customerId: 3, 
+          projectCode: '2', 
           projectName: '协助服药', 
           quantity: 1, 
           nursingTime: '2023-11-24', 
@@ -283,5 +299,23 @@ export default {
 }
 :deep(.el-form-item__label) {
   font-weight: 500;
+}
+
+/* 自定义表头样式 */
+:deep(.custom-header) {
+  background-color: #add8e6 !important;
+  color: #333;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* 确保表头单元格的内边距和边框 */
+:deep(.el-table th.el-table__cell) {
+  background-color: #add8e6;
+}
+
+/* 鼠标悬停效果 */
+:deep(.el-table th.el-table__cell:hover) {
+  background-color: #9bc9db !important;
 }
 </style>
