@@ -491,8 +491,8 @@ export default {
 
 /* 主题蓝色按钮 */
 .btn-main {
-  background: #add8e6 !important;
-  border-color: #add8e6 !important;
+  background: #409EFF !important;
+  border-color: #409EFF !important;
   color: #fff !important;
   border-radius: 6px;
 }

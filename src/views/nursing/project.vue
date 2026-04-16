@@ -1,184 +1,295 @@
 <template>
-  <div style="padding: 20px; max-width: 1200px;">
-    <h2>护理项目</h2>
+  <div style="padding: 20px; max-width: 1200px; margin: 0 auto;">
+    <h2 style="margin-bottom: 20px;">护理项目管理</h2>
 
     <!-- 查询区域 -->
-    <div style="margin: 15px 0; display: flex; gap: 12px; align-items: center;">
-      <el-select
-        v-model="queryStatus"
-        placeholder="护理项目状态"
-        style="width: 150px;"
+    <el-card style="margin-bottom: 20px;">
+      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+        <el-select
+          v-model="queryStatus"
+          placeholder="护理项目状态"
+          style="width: 150px;"
+          clearable
+        >
+          <el-option label="全部" value="" />
+          <el-option label="启用" value="启用" />
+          <el-option label="停用" value="停用" />
+        </el-select>
+
+        <el-input
+          v-model="queryName"
+          placeholder="护理项目名称（模糊查询）"
+          style="width: 260px;"
+          clearable
+        />
+
+        <el-button type="primary" @click="refreshList">查询</el-button>
+        <el-button @click="resetQuery">重置</el-button>
+        <el-button type="success" @click="openAddDialog">新增护理项目</el-button>
+      </div>
+    </el-card>
+
+    <!-- 护理项目列表 -->
+    <el-card>
+      <el-table
+        :data="pagedList"
+        border
+        stripe
+        style="width: 100%;"
+        :header-cell-style="{ background:'#409EFF', color:'#fff' }"
+        v-loading="loading"
       >
-        <el-option label="全部" value="" />
-        <el-option label="启用" value="启用" />
-        <el-option label="停用" value="停用" />
-      </el-select>
+        <el-table-column label="序号" type="index" align="center" width="80" />
+        <el-table-column label="客户" prop="customerName" align="center" min-width="120" />
+        <el-table-column label="项目编号" prop="code" align="center" width="120" />
+        <el-table-column label="项目名称" prop="name" align="center" min-width="150" />
+        <el-table-column label="价格" prop="price" align="center" width="100">
+          <template #default="{ row }">¥{{ row.price }}</template>
+        </el-table-column>
+        <el-table-column label="余量" prop="remain" align="center" width="100" />
+        <el-table-column label="总次数" prop="times" align="center" width="100" />
+        <el-table-column label="执行周期" prop="cycle" align="center" width="120" />
+        <el-table-column label="服务到期日期" prop="expireDate" align="center" width="140" />
+        
+        <el-table-column label="状态" align="center" width="120">
+          <template #default="{ row }">
+            <div style="display: flex; justify-content: center;">
+              <span :style="getStatusStyle(row)">{{ getStatusText(row) }}</span>
+            </div>
+          </template>
+        </el-table-column>
 
-      <el-input
-        v-model="queryName"
-        placeholder="护理项目名称（模糊查询）"
-        style="width: 260px;"
-        clearable
-      />
+        <el-table-column label="操作" align="center" width="220" fixed="right">
+          <template #default="{ row }">
+            <el-button
+              size="small"
+              type="primary"
+              @click="handleNursing(row)"
+            >
+              护理
+            </el-button>
+            <el-button
+              size="small"
+              type="warning"
+              @click="openEditDialog(row)"
+            >
+              修改
+            </el-button>
+            <el-button
+              size="small"
+              type="danger"
+              @click="handleDelete(row)"
+            >
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
 
-      <el-button type="primary" style="background:#409EFF;border-color:#409EFF" @click="refreshList">查询</el-button>
-      <el-button type="success" @click="openAddDialog">新增护理项目</el-button>
-    </div>
-
-    <!-- 护理项目列表（操作列整合修改/删除/护理） -->
-    <el-table
-      :data="pagedList"
-      border
-      stripe
-      style="width: 100%; margin-bottom: 20px;"
-      :header-cell-style="{ background:'#add8e6', color:'#fff', fontWeight:'bold' }"
-    >
-      <el-table-column label="序号" align="center" width="80">
-        <template #default="scope">{{ scope.$index + 1 }}</template>
-      </el-table-column>
-
-      <el-table-column label="客户" prop="customerName" align="center" />
-      <el-table-column label="护理项目编号" prop="code" align="center" />
-      <el-table-column label="护理项目名称" prop="name" align="center" />
-      <el-table-column label="价格" prop="price" align="center" width="120" />
-      <el-table-column label="余量" prop="remain" align="center" width="100" />
-      <el-table-column label="服务到期日期" prop="expireDate" align="center" width="160" />
-      
-      <el-table-column label="状态" align="center" width="120">
-        <template #default="scope">
-          <div
-            :style="{
-              backgroundColor: getStatusColor(scope.row),
-              color: '#fff',
-              padding: '4px 12px',
-              borderRadius: '4px',
-              textAlign: 'center',
-              fontWeight: 'bold'
-            }"
-          >
-            {{ getStatusText(scope.row) }}
-          </div>
-        </template>
-      </el-table-column>
-
-      <!-- 操作列：整合修改、删除、护理 -->
-      <el-table-column label="操作" align="center" width="200">
-        <template #default="scope">
-          <el-button
-            size="small"
-            type="primary"
-            style="background:#409EFF; border-color:#409EFF; border-radius:4px; margin-right:5px;"
-            @click="handleNursing(scope.row)"
-          >
-            护理
-          </el-button>
-          <el-button
-            size="small"
-            type="warning"
-            style="margin-right:5px;"
-            @click="openEditDialog(scope.row)"
-          >
-            修改
-          </el-button>
-          <el-button
-            size="small"
-            type="danger"
-            @click="handleDelete(scope.row)"
-          >
-            删除
-          </el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-
-    <!-- 分页 -->
-    <el-pagination
-      v-model:current-page="page"
-      v-model:page-size="size"
-      layout="total, prev, pager, next, jumper"
-      :total="filteredList.length"
-      style="text-align: right;"
-      prev-text="上一页"
-      next-text="下一页"
-    />
+      <!-- 分页 -->
+      <div style="margin-top: 20px;">
+        <el-pagination
+          v-model:current-page="page"
+          v-model:page-size="size"
+          :page-sizes="[5, 10, 20, 50]"
+          :total="filteredList.length"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
+    </el-card>
 
     <!-- 新增护理项目弹窗 -->
-    <el-dialog v-model="addDialog" title="新增护理项目" width="650px" center>
-      <el-form :model="addForm" label-width="130px">
-        <el-form-item label="护理人（客户姓名）" required>
-          <el-input v-model="addForm.customerName" placeholder="请输入护理人姓名" />
+    <el-dialog
+      v-model="addDialog"
+      title="新增护理项目"
+      width="600px"
+      :close-on-click-modal="false"
+    >
+      <el-form
+        ref="addFormRef"
+        :model="addForm"
+        :rules="rules"
+        label-width="120px"
+      >
+        <el-form-item label="护理人（客户）" prop="customerName">
+          <el-input
+            v-model="addForm.customerName"
+            placeholder="请输入护理人姓名"
+            clearable
+          />
         </el-form-item>
-        <el-form-item label="项目编号" required>
-          <el-input v-model="addForm.code" />
+        <el-form-item label="项目编号" prop="code">
+          <el-input
+            v-model="addForm.code"
+            placeholder="请输入项目编号"
+            clearable
+          />
         </el-form-item>
-        <el-form-item label="项目名称" required>
-          <el-input v-model="addForm.name" />
+        <el-form-item label="项目名称" prop="name">
+          <el-input
+            v-model="addForm.name"
+            placeholder="请输入项目名称"
+            clearable
+          />
         </el-form-item>
-        <el-form-item label="价格" required>
-          <el-input v-model="addForm.price" />
+        <el-form-item label="价格（元）" prop="price">
+          <el-input
+            v-model.number="addForm.price"
+            placeholder="请输入价格"
+            type="number"
+            min="0"
+            step="0.01"
+          >
+            <template #prepend>¥</template>
+          </el-input>
         </el-form-item>
-        <el-form-item label="执行周期">
-          <el-input v-model="addForm.cycle" placeholder="如：每日、每周" />
+        <el-form-item label="执行周期" prop="cycle">
+          <el-select
+            v-model="addForm.cycle"
+            placeholder="请选择执行周期"
+            style="width: 100%;"
+            clearable
+          >
+            <el-option label="每日" value="每日" />
+            <el-option label="每周" value="每周" />
+            <el-option label="每两周" value="每两周" />
+            <el-option label="每月" value="每月" />
+            <el-option label="每季度" value="每季度" />
+            <el-option label="每年" value="每年" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="执行次数">
-          <el-input v-model.number="addForm.times" type="number" />
+        <el-form-item label="执行次数" prop="times">
+          <el-input
+            v-model.number="addForm.times"
+            placeholder="请输入执行次数"
+            type="number"
+            min="1"
+          />
         </el-form-item>
-        <el-form-item label="状态">
+        <el-form-item label="状态" prop="status">
           <el-radio-group v-model="addForm.status">
             <el-radio label="启用" />
             <el-radio label="停用" />
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="描述">
-          <el-input v-model="addForm.desc" type="textarea" :rows="3" />
+        <el-form-item label="描述" prop="desc">
+          <el-input
+            v-model="addForm.desc"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入项目描述（可选）"
+            maxlength="200"
+            show-word-limit
+          />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="addDialog = false">取消</el-button>
-        <el-button type="primary" @click="saveAdd">确认新增</el-button>
+        <span class="dialog-footer">
+          <el-button @click="addDialog = false">取消</el-button>
+          <el-button type="primary" @click="handleAddSubmit">确定</el-button>
+        </span>
       </template>
     </el-dialog>
 
     <!-- 修改护理项目弹窗 -->
-    <el-dialog v-model="editDialog" title="修改护理项目" width="650px" center>
-      <el-form :model="editForm" label-width="130px">
-        <el-form-item label="护理人（客户姓名）">
-          <el-input v-model="editForm.customerName" disabled />
+    <el-dialog
+      v-model="editDialog"
+      title="修改护理项目"
+      width="600px"
+      :close-on-click-modal="false"
+    >
+      <el-form
+        ref="editFormRef"
+        :model="editForm"
+        :rules="rules"
+        label-width="120px"
+      >
+        <el-form-item label="护理人（客户）">
+          <el-input
+            v-model="editForm.customerName"
+            disabled
+          />
         </el-form-item>
         <el-form-item label="项目编号">
-          <el-input v-model="editForm.code" disabled />
+          <el-input
+            v-model="editForm.code"
+            disabled
+          />
         </el-form-item>
-        <el-form-item label="项目名称" required>
-          <el-input v-model="editForm.name" />
+        <el-form-item label="项目名称" prop="name">
+          <el-input
+            v-model="editForm.name"
+            placeholder="请输入项目名称"
+            clearable
+          />
         </el-form-item>
-        <el-form-item label="价格" required>
-          <el-input v-model="editForm.price" />
+        <el-form-item label="价格（元）" prop="price">
+          <el-input
+            v-model.number="editForm.price"
+            placeholder="请输入价格"
+            type="number"
+            min="0"
+            step="0.01"
+          >
+            <template #prepend>¥</template>
+          </el-input>
         </el-form-item>
-        <el-form-item label="执行周期">
-          <el-input v-model="editForm.cycle" />
+        <el-form-item label="执行周期" prop="cycle">
+          <el-select
+            v-model="editForm.cycle"
+            placeholder="请选择执行周期"
+            style="width: 100%;"
+            clearable
+          >
+            <el-option label="每日" value="每日" />
+            <el-option label="每周" value="每周" />
+            <el-option label="每两周" value="每两周" />
+            <el-option label="每月" value="每月" />
+            <el-option label="每季度" value="每季度" />
+            <el-option label="每年" value="每年" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="执行次数">
-          <el-input v-model.number="editForm.times" type="number" />
+        <el-form-item label="执行次数" prop="times">
+          <el-input
+            v-model.number="editForm.times"
+            placeholder="请输入执行次数"
+            type="number"
+            min="1"
+          />
         </el-form-item>
-        <el-form-item label="状态">
+        <el-form-item label="状态" prop="status">
           <el-radio-group v-model="editForm.status">
             <el-radio label="启用" />
             <el-radio label="停用" />
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="描述">
-          <el-input v-model="editForm.desc" type="textarea" :rows="3" />
+        <el-form-item label="描述" prop="desc">
+          <el-input
+            v-model="editForm.desc"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入项目描述（可选）"
+            maxlength="200"
+            show-word-limit
+          />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="editDialog = false">取消</el-button>
-        <el-button type="primary" @click="saveEdit">确认修改</el-button>
+        <span class="dialog-footer">
+          <el-button @click="editDialog = false">取消</el-button>
+          <el-button type="primary" @click="handleEditSubmit">确定</el-button>
+        </span>
       </template>
     </el-dialog>
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+
 // 工具函数：计算3个月后日期
 const get3MonthsLater = () => {
   const d = new Date()
@@ -189,230 +300,418 @@ const get3MonthsLater = () => {
 // 工具函数：获取今天日期
 const getToday = () => new Date().toISOString().split('T')[0]
 
-export default {
-  name: 'NursingProject',
-  data() {
+// 模拟数据
+const mockData = () => {
+  const today = getToday()
+  const threeMonthsLater = get3MonthsLater()
+  const oneMonthAgo = new Date()
+  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
+  const expiredDate = oneMonthAgo.toISOString().split('T')[0]
+  
+  return [
+    {
+      id: 1,
+      customerName: '孙瑞英',
+      code: 'PROJ001',
+      name: '基础护理',
+      price: 50.00,
+      cycle: '每日',
+      times: 30,
+      remain: 25,
+      status: '启用',
+      expireDate: threeMonthsLater,
+      desc: '日常基础护理服务',
+      createTime: '2026-01-15',
+      updateTime: '2026-01-15'
+    },
+    {
+      id: 2,
+      customerName: '孙瑞英',
+      code: 'PROJ002',
+      name: '康复训练',
+      price: 80.00,
+      cycle: '每周',
+      times: 12,
+      remain: 2,
+      status: '启用',
+      expireDate: threeMonthsLater,
+      desc: '术后康复训练',
+      createTime: '2026-02-20',
+      updateTime: '2026-02-20'
+    },
+    {
+      id: 3,
+      customerName: '李明',
+      code: 'PROJ003',
+      name: '老年护理',
+      price: 120.00,
+      cycle: '每月',
+      times: 6,
+      remain: 0,
+      status: '启用',
+      expireDate: expiredDate,
+      desc: '老年人日常护理服务',
+      createTime: '2025-12-10',
+      updateTime: '2026-03-01'
+    },
+    {
+      id: 4,
+      customerName: '王芳',
+      code: 'PROJ004',
+      name: '特殊护理',
+      price: 200.00,
+      cycle: '每两周',
+      times: 8,
+      remain: 1,
+      status: '停用',
+      expireDate: '2026-05-20',
+      desc: '特殊病人护理服务',
+      createTime: '2026-01-25',
+      updateTime: '2026-02-28'
+    },
+    {
+      id: 5,
+      customerName: '张伟',
+      code: 'PROJ005',
+      name: '常规检查',
+      price: 60.00,
+      cycle: '每季度',
+      times: 4,
+      remain: 3,
+      status: '启用',
+      expireDate: '2026-06-30',
+      desc: '常规健康检查服务',
+      createTime: '2026-02-15',
+      updateTime: '2026-02-15'
+    }
+  ]
+}
+
+// 数据
+const projectList = ref([])
+const queryName = ref('')
+const queryStatus = ref('')
+const page = ref(1)
+const size = ref(10)
+const loading = ref(false)
+const addDialog = ref(false)
+const editDialog = ref(false)
+
+// 表单引用
+const addFormRef = ref()
+const editFormRef = ref()
+
+// 新增表单
+const addForm = ref({
+  customerName: '',
+  code: '',
+  name: '',
+  price: '',
+  cycle: '每月',
+  times: 1,
+  status: '启用',
+  desc: ''
+})
+
+// 修改表单
+const editForm = ref({})
+
+// 表单验证规则
+const rules = {
+  customerName: [
+    { required: true, message: '请输入护理人姓名', trigger: 'blur' }
+  ],
+  code: [
+    { required: true, message: '请输入项目编号', trigger: 'blur' }
+  ],
+  name: [
+    { required: true, message: '请输入项目名称', trigger: 'blur' }
+  ],
+  price: [
+    { required: true, message: '请输入价格', trigger: 'blur' },
+    { type: 'number', message: '价格必须是数字', trigger: 'blur' },
+    { validator: (rule, value) => value >= 0, message: '价格不能为负数', trigger: 'blur' }
+  ],
+  times: [
+    { required: true, message: '请输入执行次数', trigger: 'blur' },
+    { type: 'number', message: '执行次数必须是数字', trigger: 'blur' },
+    { validator: (rule, value) => value > 0, message: '执行次数必须大于0', trigger: 'blur' }
+  ],
+  status: [
+    { required: true, message: '请选择状态', trigger: 'change' }
+  ]
+}
+
+// 计算属性
+const filteredList = computed(() => {
+  return projectList.value.filter(item => {
+    const matchStatus = !queryStatus.value || item.status === queryStatus.value
+    const matchName = !queryName.value || item.name.includes(queryName.value) || item.code.includes(queryName.value)
+    return matchStatus && matchName
+  })
+})
+
+const pagedList = computed(() => {
+  const start = (page.value - 1) * size.value
+  return filteredList.value.slice(start, start + size.value)
+})
+
+// 状态样式
+const getStatusStyle = (row) => {
+  const today = getToday()
+  const isExpired = row.expireDate < today
+  const isOutOfRemain = row.remain <= 0
+  
+  if (row.status === '停用') {
     return {
-      // 移除全局共享依赖，直接内置护理项目数据
-      projectList: [
-        // 初始化示例数据
-        {
-          id: 1,
-          customerName: '孙瑞英',
-          code: 'PROJ001',
-          name: '基础护理',
-          price: '50.00',
-          cycle: '每日',
-          times: 30,
-          remain: 25,
-          status: '启用',
-          expireDate: get3MonthsLater(),
-          desc: '日常基础护理服务'
-        },
-        {
-          id: 2,
-          customerName: '孙瑞英',
-          code: 'PROJ002',
-          name: '康复训练',
-          price: '80.00',
-          cycle: '每周',
-          times: 12,
-          remain: 2,
-          status: '启用',
-          expireDate: get3MonthsLater(),
-          desc: '术后康复训练'
-        }
-      ],
-      // 护理级别数据（内置，替代全局共享）
-      levelList: [
-        { id: 1, name: '一级护理', projectIds: [1, 2] },
-        { id: 2, name: '二级护理', projectIds: [1] }
-      ],
-
-      // 查询条件
-      queryName: '',
-      queryStatus: '启用', // 默认查询启用状态
-
-      // 分页
-      page: 1,
-      size: 10,
-
-      // 弹窗控制
-      addDialog: false,
-      editDialog: false,
-
-      // 表单数据
-      addForm: {
-        customerName: '',
-        code: '',
-        name: '',
-        price: '',
-        cycle: '',
-        times: 1,
-        status: '启用',
-        desc: ''
-      },
-      editForm: {}
+      color: '#999',
+      padding: '4px 12px',
+      borderRadius: '4px',
+      fontSize: '12px'
     }
-  },
-  computed: {
-    // 多条件筛选列表
-    filteredList() {
-      return this.projectList.filter(item => {
-        const matchStatus = !this.queryStatus || item.status === this.queryStatus
-        const matchName = !this.queryName || item.name.includes(this.queryName)
-        return matchStatus && matchName
-      })
-    },
-    // 分页列表
-    pagedList() {
-      const start = (this.page - 1) * this.size
-      return this.filteredList.slice(start, start + this.size)
+  } else if (isExpired) {
+    return {
+      color: '#f56c6c',
+      padding: '4px 12px',
+      borderRadius: '4px',
+      fontSize: '12px',
+      fontWeight: 'bold'
     }
-  },
-  methods: {
-    // 辅助函数：根据规则判断状态颜色
-    getStatusColor(row) {
-      const today = getToday()
-      // 已欠费/已到期/停用 红色；即将用完 橙色；正常 绿色
-      if (row.status === '停用' || row.remain <= 0 || row.expireDate < today) {
-        return '#f5222d'
-      }
-      if (row.remain <= 2) {
-        return '#faad14'
-      }
-      return '#52c41a'
-    },
-    // 辅助函数：获取状态文本
-    getStatusText(row) {
-      const today = getToday()
-      if (row.status === '停用') return '停用'
-      if (row.expireDate < today) return '已到期'
-      if (row.remain <= 0) return '已欠费'
-      if (row.remain <= 2) return '即将用完'
-      return '未到期'
-    },
-
-    // 刷新查询（重置页码）
-    refreshList() {
-      this.page = 1
-    },
-
-    // 执行护理操作
-    handleNursing(row) {
-      this.$message.info(`执行护理：${row.name}，余量-${1}`)
-      // 护理后余量减1（模拟业务逻辑）
-      const index = this.projectList.findIndex(item => item.id === row.id)
-      if (index > -1) {
-        this.projectList[index].remain = Math.max(0, this.projectList[index].remain - 1)
-      }
-    },
-
-    // ---------------------- 新增护理项目 ----------------------
-    openAddDialog() {
-      // 重置新增表单
-      this.addForm = {
-        customerName: '',
-        code: '',
-        name: '',
-        price: '',
-        cycle: '',
-        times: 1,
-        status: '启用',
-        desc: ''
-      }
-      this.addDialog = true
-    },
-    saveAdd() {
-      // 表单校验
-      if (!this.addForm.customerName || !this.addForm.code || !this.addForm.name || !this.addForm.price) {
-        this.$message.warning('请填写护理人、项目编号、名称、价格等必填项！')
-        return
-      }
-
-      // 生成新ID
-      const newId = this.projectList.length
-        ? Math.max(...this.projectList.map(p => p.id)) + 1
-        : 1
-
-      // 新增项目
-      this.projectList.push({
-        id: newId,
-        customerName: this.addForm.customerName,
-        code: this.addForm.code,
-        name: this.addForm.name,
-        price: this.addForm.price,
-        cycle: this.addForm.cycle,
-        times: this.addForm.times,
-        remain: this.addForm.times, // 初始余量=执行次数
-        status: this.addForm.status,
-        expireDate: get3MonthsLater(),
-        desc: this.addForm.desc
-      })
-
-      this.$message.success('新增护理项目成功！')
-      this.addDialog = false
-    },
-
-    // ---------------------- 修改护理项目 ----------------------
-    openEditDialog(row) {
-      // 深拷贝避免直接修改原数据
-      this.editForm = JSON.parse(JSON.stringify(row))
-      this.editDialog = true
-    },
-    saveEdit() {
-      // 表单校验
-      if (!this.editForm.name || !this.editForm.price) {
-        this.$message.warning('请填写项目名称、价格等必填项！')
-        return
-      }
-
-      // 找到要修改的项目索引
-      const index = this.projectList.findIndex(p => p.id === this.editForm.id)
-      if (index === -1) return
-
-      // 状态改为停用时，自动从护理级别中剔除
-      if (this.editForm.status === '停用' && this.projectList[index].status !== '停用') {
-        this.removeProjectFromLevels(this.editForm.id)
-      }
-
-      // 更新项目数据
-      this.projectList[index] = { ...this.projectList[index], ...this.editForm }
-      this.$message.success('修改护理项目成功！')
-      this.editDialog = false
-    },
-
-    // ---------------------- 删除护理项目 ----------------------
-    handleDelete(row) {
-      this.$confirm('确定删除该护理项目？\n删除后不会影响客户历史护理记录', '警告', {
-        type: 'warning'
-      }).then(() => {
-        // 从护理级别中剔除该项目
-        this.removeProjectFromLevels(row.id)
-
-        // 从列表中删除
-        const idx = this.projectList.findIndex(p => p.id === row.id)
-        if (idx > -1) {
-          this.projectList.splice(idx, 1)
-        }
-
-        this.$message.success('删除护理项目成功！')
-      })
-    },
-
-    // ---------------------- 工具函数：从护理级别剔除项目 ----------------------
-    removeProjectFromLevels(projectId) {
-      this.levelList.forEach(level => {
-        level.projectIds = level.projectIds.filter(id => id !== projectId)
-      })
+  } else if (isOutOfRemain) {
+    return {
+      color: '#f56c6c',
+      padding: '4px 12px',
+      borderRadius: '4px',
+      fontSize: '12px',
+      fontWeight: 'bold'
+    }
+  } else if (row.remain <= 2) {
+    return {
+      color: '#e6a23c',
+      padding: '4px 12px',
+      borderRadius: '4px',
+      fontSize: '12px',
+      fontWeight: 'bold'
+    }
+  } else {
+    return {
+      color: '#67c23a',
+      padding: '4px 12px',
+      borderRadius: '4px',
+      fontSize: '12px',
+      fontWeight: 'bold'
     }
   }
 }
+
+// 状态文本
+const getStatusText = (row) => {
+  const today = getToday()
+  if (row.status === '停用') return '停用'
+  if (row.expireDate < today) return '已到期'
+  if (row.remain <= 0) return '已用完'
+  if (row.remain <= 2) return '即将用完'
+  return '正常'
+}
+
+// 方法
+const refreshList = () => {
+  loading.value = true
+  // 模拟异步请求
+  setTimeout(() => {
+    loading.value = false
+    page.value = 1
+  }, 300)
+}
+
+const resetQuery = () => {
+  queryName.value = ''
+  queryStatus.value = ''
+  refreshList()
+}
+
+const openAddDialog = () => {
+  addForm.value = {
+    customerName: '',
+    code: '',
+    name: '',
+    price: '',
+    cycle: '每月',
+    times: 1,
+    status: '启用',
+    desc: ''
+  }
+  addDialog.value = true
+  // 清空表单验证
+  nextTick(() => {
+    if (addFormRef.value) {
+      addFormRef.value.clearValidate()
+    }
+  })
+}
+
+const handleAddSubmit = async () => {
+  if (!addFormRef.value) return
+  
+  try {
+    await addFormRef.value.validate()
+    
+    // 检查项目编号是否重复
+    const isCodeExist = projectList.value.some(item => item.code === addForm.value.code)
+    if (isCodeExist) {
+      ElMessage.error('项目编号已存在，请使用其他编号')
+      return
+    }
+    
+    // 生成新ID
+    const newId = projectList.value.length > 0 
+      ? Math.max(...projectList.value.map(p => p.id)) + 1
+      : 1
+    
+    const today = getToday()
+    const newProject = {
+      id: newId,
+      ...addForm.value,
+      remain: addForm.value.times,
+      expireDate: get3MonthsLater(),
+      createTime: today,
+      updateTime: today
+    }
+    
+    projectList.value.unshift(newProject)
+    ElMessage.success('新增护理项目成功！')
+    addDialog.value = false
+    refreshList()
+  } catch (error) {
+    console.log('表单验证失败:', error)
+  }
+}
+
+const openEditDialog = (row) => {
+  editForm.value = { ...row }
+  editDialog.value = true
+  // 清空表单验证
+  nextTick(() => {
+    if (editFormRef.value) {
+      editFormRef.value.clearValidate()
+    }
+  })
+}
+
+const handleEditSubmit = async () => {
+  if (!editFormRef.value) return
+  
+  try {
+    await editFormRef.value.validate()
+    
+    const index = projectList.value.findIndex(p => p.id === editForm.value.id)
+    if (index !== -1) {
+      const oldRemain = projectList.value[index].remain
+      const newRemain = editForm.value.status === '启用' && editForm.value.times >= oldRemain 
+        ? editForm.value.times 
+        : oldRemain
+      
+      projectList.value[index] = {
+        ...projectList.value[index],
+        ...editForm.value,
+        remain: newRemain,
+        updateTime: getToday()
+      }
+      
+      ElMessage.success('修改护理项目成功！')
+      editDialog.value = false
+      refreshList()
+    }
+  } catch (error) {
+    console.log('表单验证失败:', error)
+  }
+}
+
+const handleNursing = (row) => {
+  if (row.remain <= 0) {
+    ElMessage.warning('该护理项目次数已用完，无法执行护理！')
+    return
+  }
+  
+  if (row.expireDate < getToday()) {
+    ElMessage.warning('该护理项目已过期，无法执行护理！')
+    return
+  }
+  
+  if (row.status === '停用') {
+    ElMessage.warning('该护理项目已停用，无法执行护理！')
+    return
+  }
+  
+  ElMessageBox.confirm(
+    `确定执行护理项目：${row.name}？执行后余量将减少1次。`,
+    '确认执行护理',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+  ).then(() => {
+    const index = projectList.value.findIndex(item => item.id === row.id)
+    if (index !== -1) {
+      projectList.value[index].remain = Math.max(0, projectList.value[index].remain - 1)
+      projectList.value[index].updateTime = getToday()
+      ElMessage.success(`护理执行成功！项目余量：${projectList.value[index].remain}次`)
+      refreshList()
+    }
+  }).catch(() => {
+    // 用户取消
+  })
+}
+
+const handleDelete = (row) => {
+  ElMessageBox.confirm(
+    `确定删除护理项目：${row.name}？删除后不可恢复。`,
+    '确认删除',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+  ).then(() => {
+    const index = projectList.value.findIndex(p => p.id === row.id)
+    if (index !== -1) {
+      projectList.value.splice(index, 1)
+      ElMessage.success('删除护理项目成功！')
+      refreshList()
+    }
+  }).catch(() => {
+    // 用户取消
+  })
+}
+
+const handleSizeChange = (val) => {
+  size.value = val
+  refreshList()
+}
+
+const handleCurrentChange = (val) => {
+  page.value = val
+  refreshList()
+}
+
+// 生命周期
+onMounted(() => {
+  // 模拟异步加载数据
+  loading.value = true
+  setTimeout(() => {
+    projectList.value = mockData()
+    loading.value = false
+  }, 500)
+})
+
+// 引入 nextTick
+import { nextTick } from 'vue'
 </script>
 
 <style scoped>
 .el-table th {
-  background-color: #add8e6 !important;
+  background-color: #409EFF !important;
   color: #fff !important;
 }
 .el-table {
@@ -420,6 +719,6 @@ export default {
   overflow: hidden;
 }
 .el-button + .el-button {
-  margin-left: 5px;
+  margin-left: 8px;
 }
 </style>
