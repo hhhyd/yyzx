@@ -147,7 +147,6 @@ export default {
       pageSize: 10,
       originalSearchName: '',
       selfCareData: [
-
         { id: 1, name: '陈国栋', gender: '男', bloodType: 'A', phone: '13912340001', family: '陈小明', idCard: '110101195001011234', building: '606', room: '1楼101', bed: '1床', birthDate: '1950-01-01', checkInTime: '2024-01-01 09:00:00', nursingLevel: '一级', nurse: '李护士', status: '良好' },
         { id: 2, name: '王淑芬', gender: '女', bloodType: 'B', phone: '13912340002', family: '王大力', idCard: '110101195102022345', building: '606', room: '1楼102', bed: '2床', birthDate: '1951-02-02', checkInTime: '2024-01-05 10:30:00', nursingLevel: '一级', nurse: '张护士', status: '良好' },
         { id: 3, name: '刘志远', gender: '男', bloodType: 'O', phone: '13912340003', family: '刘小军', idCard: '110101195203033456', building: '606', room: '1楼101', bed: '2床', birthDate: '1952-03-03', checkInTime: '2024-01-10 14:00:00', nursingLevel: '一级', nurse: '王护士', status: '良好' },
