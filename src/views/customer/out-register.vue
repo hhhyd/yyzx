@@ -7,17 +7,13 @@
       <el-button type="success" @click="openAddApplyModal">登记</el-button>
       <el-button type="warning" @click="handleReset">重置</el-button>
     </div>
-    <div style="display: flex; gap: 20px;">
-      <div style="flex: 1; border: 1px solid #e4e7ed; border-radius: 4px;">
+    
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+      <div style="border: 1px solid #e4e7ed; border-radius: 4px;">
         <div style="background: #ADD8E6; color: white; padding: 10px; font-weight: bold;">
           <span>客户信息</span>
         </div>
-        <el-table 
-          :data="displayCustomerData" 
-          style="width: 100%"
-          @row-click="handleRowClick"
-          highlight-current-row
-        >
+        <el-table :data="displayCustomerData" style="width: 100%" @row-click="handleRowClick" highlight-current-row>
           <el-table-column prop="id" label="序号" width="60" />
           <el-table-column prop="name" label="姓名" width="100" />
           <el-table-column prop="age" label="年龄" width="80" />
@@ -26,17 +22,12 @@
           <el-table-column prop="nursingLevel" label="护理级别" width="100" />
         </el-table>
         <div style="padding: 10px; display: flex; justify-content: flex-end;">
-          <el-pagination
-            v-model:current-page="customerCurrentPage"
-            v-model:page-size="customerPageSize"
-            :total="customerTotal"
-            layout="total, prev, pager, next, jumper"
-            :size="'small'"
-            @current-change="handleCustomerPageChange"
-          />
+          <el-pagination v-model:current-page="customerCurrentPage" v-model:page-size="customerPageSize" :total="customerTotal"
+            layout="total, prev, pager, next, jumper" :size="'small'" @current-change="handleCustomerPageChange"/>
         </div>
       </div>
-      <div style="flex: 1; border: 1px solid #e4e7ed; border-radius: 4px;">
+
+      <div style="border: 1px solid #e4e7ed; border-radius: 4px;">
         <div style="background: #ADD8E6; color: white; padding: 10px; font-weight: bold;">外出申请</div>
         <el-table :data="displayApplyData" style="width: 100%">
           <el-table-column prop="id" label="序号" width="60" />
@@ -47,12 +38,8 @@
           <el-table-column prop="actualReturnTime" label="实际回院时间" width="120">
             <template #default="{ row }">
               <span v-if="row.actualReturnTime">{{ row.actualReturnTime }}</span>
-              <el-button 
-                v-else-if="row.status === '通过' && !row.actualReturnTime"
-                size="small" 
-                type="warning" 
-                @click="openReturnModal(row)"
-              >
+              <el-button v-else-if="row.status === '通过' && !row.actualReturnTime" size="small" type="warning" @click="openReturnModal(row)">
+                登记回院
               </el-button>
               <span v-else>-</span>
             </template>
@@ -67,63 +54,32 @@
           </el-table-column>
           <el-table-column label="操作" width="100">
             <template #default="{ row }">
-              <el-button 
-                v-if="row.status === '已提交'" 
-                size="small" 
-                type="primary" 
-                @click="openApproveModal(row)"
-              >
-              </el-button>
+              <el-button v-if="row.status === '已提交'" size="small" type="primary" @click="openApproveModal(row)">审批</el-button>
             </template>
           </el-table-column>
         </el-table>
         <div style="padding: 10px; display: flex; justify-content: flex-end;">
-          <el-pagination
-            v-model:current-page="applyCurrentPage"
-            v-model:page-size="applyPageSize"
-            :total="applyTotal"
-            layout="total, prev, pager, next, jumper"
-            :size="'small'"
-            @current-change="handleApplyPageChange"
-          />
+          <el-pagination v-model:current-page="applyCurrentPage" v-model:page-size="applyPageSize" :total="applyTotal"
+            layout="total, prev, pager, next, jumper" :size="'small'"  @current-change="handleApplyPageChange"/>
         </div>
       </div>
     </div>
-    <el-dialog
-      title="新增外出申请"
-      v-model="addDialogVisible"
-      width="550px"
-      @close="resetAddForm"
-    >
+
+    <el-dialog title="新增外出申请" v-model="addDialogVisible" width="550px" @close="resetAddForm" >
       <el-form :model="addForm" label-width="110px" :rules="addRules" ref="addFormRef">
         <el-form-item label="客户姓名" prop="customerName">
           <el-input v-model="addForm.customerName" disabled style="width: 100%" />
         </el-form-item>
         <el-form-item label="外出事由" prop="reason">
-          <el-input 
-            v-model="addForm.reason" 
-            type="textarea" 
-            :rows="3" 
-            placeholder="请输入外出事由"
-          />
+          <el-input  v-model="addForm.reason" type="textarea" :rows="3" placeholder="请输入外出事由" />
         </el-form-item>
         <el-form-item label="外出时间" prop="outTime">
-          <el-date-picker 
-            v-model="addForm.outTime" 
-            type="datetime" 
-            placeholder="选择外出时间"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            style="width: 100%"
-          />
+          <el-date-picker  v-model="addForm.outTime"  type="datetime"  placeholder="选择外出时间"
+            value-format="YYYY-MM-DD HH:mm:ss" style="width: 100%" />
         </el-form-item>
         <el-form-item label="预计回院时间" prop="expectedReturnTime">
-          <el-date-picker 
-            v-model="addForm.expectedReturnTime" 
-            type="datetime" 
-            placeholder="选择预计回院时间"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            style="width: 100%"
-          />
+          <el-date-picker  v-model="addForm.expectedReturnTime"  type="datetime"  placeholder="选择预计回院时间"
+            value-format="YYYY-MM-DD HH:mm:ss" style="width: 100%" />
         </el-form-item>
         <el-form-item label="陪同人" prop="companion">
           <el-input v-model="addForm.companion" placeholder="请输入陪同人姓名" />
@@ -141,11 +97,8 @@
         <el-button type="primary" @click="submitAddApply">提交申请</el-button>
       </template>
     </el-dialog>
-    <el-dialog
-      :title="modalTitle"
-      v-model="dialogVisible"
-      width="500px"
-      @close="handleDialogClose" >
+
+    <el-dialog :title="modalTitle" v-model="dialogVisible"  width="500px" @close="handleDialogClose" >
       <el-form :model="form" label-width="100px" :rules="rules" ref="formRef">
         <el-form-item label="审批意见" prop="comment">
           <el-input v-model="form.comment" type="textarea" :rows="4" placeholder="请输入审批意见" />
@@ -164,23 +117,14 @@
       </template>
     </el-dialog>
 
-    <el-dialog
-      title="登记回院时间"
-      v-model="returnDialogVisible"
-      width="450px"
-      @close="resetReturnForm">
+    <el-dialog title="登记回院时间" v-model="returnDialogVisible" width="450px" @close="resetReturnForm">
       <el-form :model="returnForm" label-width="110px" :rules="returnRules" ref="returnFormRef">
         <el-form-item label="客户姓名" prop="name">
           <el-input v-model="returnForm.name" disabled />
         </el-form-item>
         <el-form-item label="实际回院时间" prop="actualReturnTime">
-          <el-date-picker 
-            v-model="returnForm.actualReturnTime" 
-            type="datetime" 
-            placeholder="选择实际回院时间"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            style="width: 100%"
-          />
+          <el-date-picker  v-model="returnForm.actualReturnTime"  type="datetime"  placeholder="选择实际回院时间"
+           value-format="YYYY-MM-DD HH:mm:ss" style="width: 100%" />
         </el-form-item>
       </el-form>
 
@@ -202,19 +146,19 @@ export default {
       searchName: '',
       selectedCustomer: null, 
       customerData: [
-        { id: 1, name: '张三', age: 68, gender: '女', bed: '2012-1', nursingLevel: '二级' },
-        { id: 2, name: '王小明', age: 77, gender: '男', bed: '1014-1', nursingLevel: '三级' },
-        { id: 3, name: '关二', age: 67, gender: '女', bed: '2005-1', nursingLevel: '二级' },
-        { id: 4, name: '霍一', age: 82, gender: '男', bed: '3001-1', nursingLevel: '一级' },
-        { id: 5, name: '吴吴', age: 75, gender: '女', bed: '3001-2', nursingLevel: '二级' },
-        { id: 6, name: '李四', age: 82, gender: '男', bed: '3001-1', nursingLevel: '一级' },
-        { id: 7, name: '方七', age: 82, gender: '男', bed: '3001-1', nursingLevel: '一级' },
-        { id: 8, name: '杜五', age: 77, gender: '男', bed: '1014-1', nursingLevel: '三级' },
-        { id: 9, name: '一二', age: 67, gender: '女', bed: '2005-1', nursingLevel: '二级' },
-        { id: 10, name: '三四', age: 82, gender: '男', bed: '3001-1', nursingLevel: '一级' },
-        { id: 11, name: '小七', age: 75, gender: '女', bed: '3001-2', nursingLevel: '二级' },
-        { id: 12, name: '于九', age: 82, gender: '男', bed: '3001-1', nursingLevel: '一级' },
-        { id: 13, name: '林六', age: 82, gender: '男', bed: '3001-1', nursingLevel: '一级' },
+        { id: 1, name: '张三', age: 68, gender: '女', bed: '1床', nursingLevel: '二级' },
+        { id: 2, name: '王小明', age: 77, gender: '男', bed: '2床', nursingLevel: '二级' },
+        { id: 3, name: '关二', age: 67, gender: '女', bed: '1床', nursingLevel: '二级' },
+        { id: 4, name: '霍一', age: 82, gender: '男', bed: '1床', nursingLevel: '二级' },
+        { id: 5, name: '吴吴', age: 75, gender: '女', bed: '1床', nursingLevel: '二级' },
+        { id: 6, name: '李四', age: 82, gender: '男', bed: '2床', nursingLevel: '二级' },
+        { id: 7, name: '方七', age: 82, gender: '男', bed: '2床', nursingLevel: '二级' },
+        { id: 8, name: '杜五', age: 77, gender: '男', bed: '2床', nursingLevel: '二级' },
+        { id: 9, name: '一二', age: 67, gender: '女', bed: '2床', nursingLevel: '二级' },
+        { id: 10, name: '三四', age: 82, gender: '男', bed: '2床', nursingLevel: '二级' },
+        { id: 11, name: '小七', age: 75, gender: '女', bed: '2床', nursingLevel: '二级' },
+        { id: 12, name: '于九', age: 82, gender: '男', bed: '1床', nursingLevel: '二级' },
+        { id: 13, name: '林六', age: 82, gender: '男', bed: '1床', nursingLevel: '二级' },
         { id: 14, name: '陈国栋', age:78, gender: '男',  bed: '1床',  nursingLevel: '一级' },
         { id: 15, name: '王淑芬', age:65, gender: '女',  bed: '2床', nursingLevel: '一级' },
         { id: 16, name: '刘志远', age:65, gender: '女',  bed: '2床', nursingLevel: '一级' },
@@ -229,7 +173,6 @@ export default {
         { id: 25, name: '郭建华', age:65, gender: '女',  bed: '2床', nursingLevel: '一级' },
         { id: 26, name: '唐秀珍', age:65, gender: '女',  bed: '2床', nursingLevel: '一级' }
       ],
-      
       
       applyData: [
         { id: 1, name: '张三', reason: '回家', outTime: '2023-11-13 10:00:00', expectedReturnTime: '2023-11-14 10:00:00', actualReturnTime: '2023-11-14 09:30:00', companion: '孙丽', relation: '子女', companionPhone: '13456786754', status: '通过' },
@@ -292,7 +235,6 @@ export default {
     }
   },
   computed: {
-
     filteredCustomerData() {
       if (!this.searchName) {
         return this.customerData;
