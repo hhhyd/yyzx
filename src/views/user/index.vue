@@ -437,22 +437,22 @@ export default {
     },
     
     // 编辑用户
-    editUser(row) {
-      this.form = {
-        id: row.id,
-        username: row.username,
-        name: row.name,
-        phone: row.phone,
-        gender: row.gender,
-        email: row.email,
-        type: row.type,
-        roleId: row.roleId,
-        password: '', // 编辑时不显示密码
-        status: row.status,
-        remark: row.remark || ''
-      }
-      this.dialogVisible = true
-    },
+   editUser(row) {
+  this.form = {
+    id: row.id,
+    username: row.username,
+    name: row.name,
+    phone: row.phone,
+    gender: row.gender,
+    email: row.email,
+    type: row.type,  // 确保获取员工类型
+    roleId: row.roleId,  // 确保获取角色ID
+    password: '', // 编辑时不显示密码
+    status: row.status,
+    remark: row.remark || ''
+  }
+  this.dialogVisible = true
+},
     
     // 移除用户
     removeUser(id) {

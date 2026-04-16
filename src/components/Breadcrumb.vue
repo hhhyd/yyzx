@@ -1,5 +1,5 @@
 <template>
-  <div style="display: flex; height: 100vh;">
+  <div style="display: flex; height: 100%;">
     
     <div style="width: 300px; background-color: #ADD8E6; color: white;">
       <div style="display: flex; align-items: center; padding: 15px; min-width: 0; flex-shrink: 0;isplay: flex; align-items: center; padding: 20px 20px 20px 10px;">
