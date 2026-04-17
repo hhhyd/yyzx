@@ -15,7 +15,7 @@
             {{ getStewardCustomers(scope.row.id).length }}
           </template>
         </el-table-column>
-      </el-table>
+      </el-table >
     </div>
 
     <!-- 设置服务对象 -->
@@ -186,4 +186,5 @@ export default {
 .section h4 {
   margin-bottom: 10px;
 }
+
 </style>

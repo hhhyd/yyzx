@@ -273,9 +273,6 @@ const pagination = reactive({
   total: 0
 })
 
-// ==============================================
-// 数据加载与保存
-// ==============================================
 const loadFromLocal = () => {
   const list = localStorage.getItem(STORAGE_KEY_BED_LIST)
   if (list) {
@@ -301,9 +298,6 @@ onMounted(() => {
   loadFromLocal()
 })
 
-// ==============================================
-// 筛选与分页
-// ==============================================
 const filteredList = computed(() => {
   return bedUsageList.value.filter(item => {
     const nameMatch = searchForm.customerName ? item.customerName.includes(searchForm.customerName) : true
@@ -319,9 +313,6 @@ const tableData = computed(() => {
   return filteredList.value.slice(start, end)
 })
 
-// ==============================================
-// 查询与重置
-// ==============================================
 const handleSearch = () => {
   loading.value = true
   setTimeout(() => {
@@ -339,9 +330,6 @@ const handleReset = () => {
   handleSearch()
 }
 
-// ==============================================
-// 分页操作
-// ==============================================
 const handleSizeChange = (val) => {
   pagination.pageSize = val
   handleSearch()
@@ -351,9 +339,6 @@ const handleCurrentChange = (val) => {
   pagination.currentPage = val
 }
 
-// ==============================================
-// 修改结束时间
-// ==============================================
 const editDialogVisible = ref(false)
 const editForm = reactive({
   id: null,
@@ -369,7 +354,7 @@ const handleEditEndDate = (row) => {
   editDialogVisible.value = true
 }
 
-// 禁用过去日期
+
 const disabledDate = (time) => {
   return time.getTime() < Date.now() - 86400000
 }
@@ -391,9 +376,6 @@ const confirmEditEndDate = () => {
   }
 }
 
-// ==============================================
-// 床位调换
-// ==============================================
 const transferDialogVisible = ref(false)
 const transferForm = reactive({
   customerId: null,
@@ -421,7 +403,7 @@ const handleTransferBed = (row) => {
     targetBedNo: ''
   })
 
-  // 过滤掉当前房间
+
   availableRooms.value = [
     { roomNo: '101' }, { roomNo: '102' }, { roomNo: '103' },
     { roomNo: '104' }, { roomNo: '105' }, { roomNo: '201' },

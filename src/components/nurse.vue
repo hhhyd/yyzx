@@ -1,10 +1,14 @@
 <template>
-  <div style="display: flex; height: 100vh;">
-    <!-- 侧边栏 -->
-    <div style="width: 200px; background-color: #ADD8E6; color: white;">
-      <div style="display: flex; align-items: center; padding: 20px 20px 20px 10px;">
-        <img src="../assets/logo.png" alt="" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 5px; ">
-      <div style="text-align: center; padding: 20px; font-size: 18px; font-weight: bold;">
+  <div style="display: flex; height: 100%;">
+
+    <div style="width: 300px; background-color: #ADD8E6; color: white;">
+      <div style="display: flex; align-items: center; padding: 15px; min-width: 0; flex-shrink: 0;">
+        <img src="../assets/logo.png" alt="" style="width: 60px; height: 60px; border-radius: 50%; margin-right: 5px; ">
+      <div style="font-size: 25px; 
+          font-weight: bold; 
+          white-space: nowrap;  
+          overflow: hidden;     
+          text-overflow: ellipsis;">
         东软颐养
          </div>
       </div>
@@ -14,6 +18,7 @@
         text-color="#1A2C3E"
         active-text-color="#409EFF"
         @select="handleSelect"
+        class="sidebar"
       >
         <el-sub-menu index="1">
           <template #title>健康管家</template>
@@ -28,17 +33,15 @@
       </el-menu>
     </div>
 
-    <!-- 右侧内容区 -->
     <div style="flex: 1; display: flex; flex-direction: column;">
-      <!-- 顶部面包屑 -->
+
       <div style="padding: 15px 20px; background: #fff; border-bottom: 1px solid #e4e7ed;">
         <el-breadcrumb separator="/">
           <el-breadcrumb-item :to="{ path: '/nurse/daily' }">首页</el-breadcrumb-item>
           <el-breadcrumb-item>{{ pageTitle }}</el-breadcrumb-item>
         </el-breadcrumb>
       </div>
-      
-      <!-- ！！！关键：页面内容显示区域 ！！！ -->
+
       <div style="flex: 1; padding: 20px; background: #f0f2f5;">
         <router-view />
       </div>
@@ -83,10 +86,32 @@ export default {
 </script>
 
 <style scoped>
-/* 去除默认边距 */
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+:deep(.el-menu) {
+  --el-menu-item-font-size: 20px;
+  --el-menu-item-height: 60px;
+  --el-menu-sub-item-height: 56px;
+  --el-menu-base-level-padding: 24px;
+}
+
+
+:deep(.el-sub-menu__title) {
+  font-size: 22px !important;
+  font-weight: 600 !important;
+  height: 60px !important;
+  line-height: 60px !important;
+}
+
+
+:deep(.el-menu-item) {
+  font-size: 20px !important;
+  height: 56px !important;
+  line-height: 56px !important;
+  padding-left: 40px !important;
 }
 </style>

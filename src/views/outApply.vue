@@ -1,3 +1,4 @@
+<!-- src/views/outApply.vue -->
 <template>
   <div class="out-apply-container">
     <!-- 顶部标题栏 -->

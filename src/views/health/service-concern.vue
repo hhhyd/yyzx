@@ -6,7 +6,6 @@
     </div>
 
     <el-container class="main-container">
-      <!-- 左侧：全新美化版 客户列表 ====================== 这里彻底重做了 -->
       <el-aside width="290px" class="left-aside">
         <div class="customer-card-wrapper">
           <!-- 头部搜索 -->
@@ -318,7 +317,6 @@ const removeService = async (service) => {
   overflow: hidden;
 }
 
-/* ========== 左侧全新客户列表布局 美观 + 动态 ========== */
 .left-aside {
   background-color: #fafbfc;
   border-right: 1px solid #eef1f5;

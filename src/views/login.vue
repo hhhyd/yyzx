@@ -1,7 +1,13 @@
 <template>
-    <el-row>
-        <el-col :xs="{ span: 24, offset: 0 }" :sm="{ span: 12, offset: 6 }">
-            <el-form :model="formData" ref="formData">
+    <div class="page-container">
+    <div style="display: flex; align-items: center; padding: 20px 20px 20px 10px;">
+        <img src="../assets/logo.png" alt="" style="width: 70px; height: 70px; border-radius: 50%; margin-right: 5px; ">
+        <p style=" text-align: center; color: #ADD8E6; font-weight: bold; font-size: 25px;">东软颐养</p>
+    </div>
+        <el-row>
+        <el-col  :xs="{ span: 24, offset: 0 }"  :sm="{ span: 20, offset: 2 }"    :md="{ span: 16, offset: 4 }"    :lg="{ span: 12, offset: 6 }" >
+            <el-card class="login-card" shadow="hover" :body-style="{ padding: '40px 30px' }" :style="{ maxWidth: '480px', minWidth: '360px' }">
+                <el-form :model="formData" ref="formData">
                 <el-form-item label="">
                     <el-input placeholder="请输入用户名" v-model="formData.UserName" clearable prefix-icon="User"></el-input>
                     
@@ -21,8 +27,10 @@
                     </el-button>
                 </el-form-item>
             </el-form>
+            </el-card>
         </el-col>
     </el-row>
+    </div>
 </template>
 
 <script>
@@ -87,4 +95,20 @@ export default {
 
 </script>
 
-<style></style>
+<style>
+.login-card {
+  width: 100%;
+  max-width: 480px; /* 限制卡片宽度，更美观 */
+  border-radius: 8px; /* 圆角 */
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1); /* 柔和阴影 */
+}
+.page-container {
+   display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px 10px;
+  box-sizing: border-box;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4eaf5 100%);
+}
+</style>
